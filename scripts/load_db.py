@@ -14,10 +14,17 @@ def load_db(db_path='data/hnm_recommendations.db', data_path='data/raw'):
 
     # Загружаем данные в БД
     for name, path in datasets.items():
+        query_start = f"CREATE OR REPLACE TABLE {name} AS "
+        query_mid = "SELECT * "
+        query_end = f"FROM read_parquet('{path}') "
+
+        if name == 'transactions':
+            # В таблице transactions меняем тип t_dat на DATE
+            query_mid = "SELECT CAST(t_dat AS DATE) AS t_dat, * EXCLUDE (t_dat)"
+    
         con.execute(f"""
-           CREATE OR REPLACE TABLE {name} AS
-           SELECT *
-           FROM read_parquet('{path}') 
-        """)
+               {query_start}{query_mid}
+               {query_end}
+            """)
 
     return con
