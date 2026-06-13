@@ -44,4 +44,10 @@ def sparse_interaction_matrix(df):
         shape=matrix_shape # размер матрицы
     )
 
-    return interaction_matrix, customer_id_map, article_id_map, customer_index_map, article_index_map
+    return {
+        'matrix': interaction_matrix,
+        'customer_id_map': customer_id_map,
+        'article_id_map': article_id_map,
+        'customer_index_map': customer_index_map,
+        'article_index_map': article_index_map
+    }
