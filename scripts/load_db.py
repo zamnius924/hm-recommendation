@@ -1,9 +1,9 @@
 import duckdb
 
-def load_db(db_path='data/hnm_recommendations.db', data_path='data/raw'):
+def load_db(data_path='data/raw'): # db_path='data/hnm_recommendations.db'
 
     # Предопределяем БД
-    con = duckdb.connect(database=db_path)
+    con = duckdb.connect(database=':memory:') # database=db_path
 
     # Словарь с названиями таблиц и путями к данным
     datasets = {

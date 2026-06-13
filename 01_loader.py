@@ -1,5 +1,6 @@
 # %%  Импорт библиотек
 import duckdb
+import pyarrow
 import datetime as dt
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -29,3 +30,21 @@ dates = {
 }
 
 dates
+
+# %% Сохранение train- и test-датасетов
+data_train = con.execute(f"""
+    SELECT *
+    FROM transactions
+    WHERE t_dat BETWEEN '{dates['train_start']}' AND '{dates['train_end']}'
+""").df()
+
+data_test = con.execute(f"""
+    SELECT *
+    FROM transactions
+    WHERE t_dat BETWEEN '{dates['test_start']}' AND '{dates['test_end']}'
+""").df()
+
+data_train.to_parquet("data/processed/dataset_train.parquet", engine="pyarrow")
+data_test.to_parquet("data/processed/dataset_test.parquet", engine="pyarrow")
+
+con.close()

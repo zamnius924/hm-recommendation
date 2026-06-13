@@ -1,6 +1,4 @@
 NOTES.md
 __pycache__
 .DS_Store
-*.db
-*.db.wal
 *.parquet
