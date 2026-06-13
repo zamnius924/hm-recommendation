@@ -1,11 +1,13 @@
 # %%  Импорт библиотек
-import pyarrow
 import numpy as np
+import optuna
 import pandas as pd
+import pyarrow
 
 from implicit.als import AlternatingLeastSquares
 from implicit.evaluation import precision_at_k
 from scipy.sparse import csr_matrix
+from scripts.als_tuning_objective import als_tuning_objective
 from scripts.sparse_interaction_matrix import sparse_interaction_matrix
 from scripts.build_mapping import build_mapping
 
@@ -61,3 +63,15 @@ prec_at_10 = precision_at_k(
     show_progress=True
 )
 print(f"Precision@10: {prec_at_10:.4f}")
+
+# %% Тюнинг гиперпараметров
+study = optuna.create_study(direction='maximize')
+
+study.optimize(
+    lambda trial: als_tuning_objective(trial, train_interaction_matrix, test_interaction_matrix), 
+    n_trials=25)
+
+print(f"\nBest params: {study.best_params}")
+print(f"Best precision@10: {study.best_value:.4f}")
+
+# %%
