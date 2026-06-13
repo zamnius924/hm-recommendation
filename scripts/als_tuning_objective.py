@@ -13,11 +13,11 @@ def als_tuning_objective(trial, train_interaction_matrix, test_interaction_matri
 
     # Обучение модели ALS
     als_model = AlternatingLeastSquares(
-        factors=factors,  # Number of latent factors
-        iterations=iterations,  # Number of iterations to train
-        regularization=regularization, # Strength of regularisation parameter
-        alpha=alpha,  # Confidence weighting factor
-        random_state=42 # For reproducibility
+        factors=factors, # Размеры эмбеддингов
+        iterations=iterations, # Кол-во итераций при обучении
+        regularization=regularization, # Параметр регуляризации
+        alpha=alpha, # Вес сигнала
+        random_state=42
     )
 
     als_model.fit(train_interaction_matrix)
