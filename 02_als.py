@@ -1,4 +1,5 @@
 # %%  Импорт библиотек
+import json
 import numpy as np
 import optuna
 import pandas as pd
@@ -45,11 +46,11 @@ test_interaction_matrix = sparse_interaction_matrix(
 
 # %% Обучение модели ALS
 als_model = AlternatingLeastSquares(
-    factors=100,  # Number of latent factors
-    iterations=15,  # Number of iterations to train
-    regularization=0.01, # Strength of regularisation parameter
-    alpha=1.0,  # Confidence weighting factor
-    random_state=42 # For reproducibility
+    factors=100, # Размеры эмбеддингов
+    iterations=15, # Кол-во итераций при обучении
+    regularization=0.01, # Параметр регуляризации
+    alpha=1.0, # Вес сигнала
+    random_state=42
 )
 
 als_model.fit(train_interaction_matrix)
@@ -69,9 +70,14 @@ study = optuna.create_study(direction='maximize')
 
 study.optimize(
     lambda trial: als_tuning_objective(trial, train_interaction_matrix, test_interaction_matrix), 
-    n_trials=25)
+    n_trials=25
+)
 
 print(f"\nBest params: {study.best_params}")
 print(f"Best precision@10: {study.best_value:.4f}")
+
+# %% Сохранение оптимальных гиперпараметров
+with open(file='models/als_best_params.json', mode='w') as f:
+    json.dump(study.best_params, f, indent=4)
 
 # %%
