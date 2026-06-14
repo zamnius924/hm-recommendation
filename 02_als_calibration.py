@@ -22,7 +22,7 @@ print(f'Кол-во наблюдений на test: {len(df_test)}')
 # %% Создание мэппинга для train-выборки
 mapping = build_mapping(df_train)
 
-# %% Остсавляем на test-выборке только тех, кто был в train-выборке (train-only mapping)
+# %% Оставляем на test-выборке только тех, кто был в train-выборке (train-only mapping)
 df_test = df_test[
     df_test.customer_id.isin(mapping["customer_id2index"])
     & df_test.article_id.isin(mapping["article_id2index"])
