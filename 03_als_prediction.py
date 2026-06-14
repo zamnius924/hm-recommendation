@@ -11,9 +11,12 @@ from scripts.build_mapping import build_mapping
 from scripts.sparse_interaction_matrix import sparse_interaction_matrix
 
 # %% Импорт
-# Train-выборка
+# Train- и test-выборки
 df_train = pd.read_parquet('data/processed/dataset_train.parquet', engine='pyarrow')
+df_test = pd.read_parquet('data/processed/dataset_test.parquet', engine='pyarrow')
+
 print(f'Кол-во наблюдений на train: {len(df_train)}')
+print(f'Кол-во наблюдений на test: {len(df_test)}')
 
 # Оптимальные параметры ALS
 with open('models/als_best_params.json', mode='r') as file:
@@ -41,21 +44,32 @@ als_model = AlternatingLeastSquares(
 
 als_model.fit(train_interaction_matrix)
 
-# %% Генерация кандидатов на train-выборке
+# %% Оставляем на test-выборке только тех, кто был в train-выборке (train-only mapping)
+df_test = df_test[
+    df_test.customer_id.isin(mapping["customer_id2index"])
+    & df_test.article_id.isin(mapping["article_id2index"])
+]
+
+print(f'Кол-во наблюдений на test после фильтрации: {len(df_test)}')
+
+# %% Генерация кандидатов на ограниченной train-выборке
+# Ограничиваем train-выборку: только те покупатели, которые совершили покупку в test-периоде
+active_customers = set(df_test.customer_id)
+
 # Индексы покупателей, для которых построены рекомендации
 customer_index = [
     mapping['customer_id2index'][customer]
-    for customer in df_train.customer_id.unique()
+    for customer in active_customers
 ]
 
 # Индексы и оценки рекомендуемых товаров
 article_index, article_score = als_model.recommend(
     userid=customer_index,
-    user_items=train_interaction_matrix,
+    user_items=train_interaction_matrix[customer_index,:],
     N=n_recommendation
 )
 
-# %% Таблциа с рекомендациями
+# %% Таблица с рекомендациями
 # Таблица с индексами покупателей и товаров
 df_recom = pd.DataFrame({
     'customer_id': np.repeat(customer_index, n_recommendation),
@@ -67,9 +81,8 @@ df_recom = pd.DataFrame({
 df_recom.customer_id = df_recom.customer_id.map(mapping['customer_index2id'])
 df_recom.article_id = df_recom.article_id.map(mapping['article_index2id'])
 
+print(f'Кол-во наблюдений после ALS: {len(df_recom)}')
+
 # %% Сохранение результата
 df_recom.to_parquet('data/processed/als_candidates.parquet', 
                     engine='pyarrow', index=False)
-
-
-
