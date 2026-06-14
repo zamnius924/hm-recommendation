@@ -1,5 +1,6 @@
 # %%  Импорт библиотек
 import duckdb
+import json
 import pyarrow
 import datetime as dt
 import pandas as pd
@@ -30,6 +31,10 @@ dates = {
 }
 
 dates
+
+# %% Сохранение граничиных дат
+with open(file='data/processed/split_dates.json', mode='w') as file:
+    json.dump(dates, file, indent=4, default=str)
 
 # %% Сохранение train- и test-датасетов
 data_train = con.execute(f"""
