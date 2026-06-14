@@ -9,10 +9,10 @@ from implicit.als import AlternatingLeastSquares
 from implicit.evaluation import precision_at_k
 from scipy.sparse import csr_matrix
 from scripts.als_tuning_objective import als_tuning_objective
-from scripts.sparse_interaction_matrix import sparse_interaction_matrix
 from scripts.build_mapping import build_mapping
+from scripts.sparse_interaction_matrix import sparse_interaction_matrix
 
-# %% Чтение данных
+# %% Импорт данных
 df_train = pd.read_parquet('data/processed/dataset_train.parquet', engine='pyarrow')
 df_test = pd.read_parquet('data/processed/dataset_test.parquet', engine='pyarrow')
 
@@ -44,27 +44,6 @@ test_interaction_matrix = sparse_interaction_matrix(
     mapping['article_id2index']
 )
 
-# %% Обучение модели ALS
-als_model = AlternatingLeastSquares(
-    factors=100, # Размеры эмбеддингов
-    iterations=15, # Кол-во итераций при обучении
-    regularization=0.01, # Параметр регуляризации
-    alpha=1.0, # Вес сигнала
-    random_state=42
-)
-
-als_model.fit(train_interaction_matrix)
-
-# %% Оценка качества с помощью Precision@K
-prec_at_10 = precision_at_k(
-    als_model,
-    train_interaction_matrix,
-    test_interaction_matrix,
-    K=10,
-    show_progress=True
-)
-print(f"Precision@10: {prec_at_10:.4f}")
-
 # %% Тюнинг гиперпараметров
 study = optuna.create_study(direction='maximize')
 
@@ -77,7 +56,5 @@ print(f"\nBest params: {study.best_params}")
 print(f"Best precision@10: {study.best_value:.4f}")
 
 # %% Сохранение оптимальных гиперпараметров
-with open(file='models/als_best_params.json', mode='w') as f:
-    json.dump(study.best_params, f, indent=4)
-
-# %%
+with open(file='models/als_best_params.json', mode='w') as file:
+    json.dump(study.best_params, file, indent=4)
