@@ -76,6 +76,7 @@ con.execute(f"""
             MIN(t_dat) AS article_first_purchase_date,
             (DATE('{dates['train_end']}') - MIN(t_dat)) AS article_age
         FROM transactions
+        WHERE t_dat <= '{dates['train_end']}'
         GROUP BY article_id
     )
 
@@ -208,20 +209,44 @@ con.execute(f"""
     LEFT JOIN customer_garment_history h_ga
         ON als.customer_id = h_ga.customer_id
         AND a.garment_group_name = h_ga.garment_group_name
-""").df()
+""")
 
 # %% Финальный датафрейм с дополнительными customer-article features
-df = con.execute(f"""
+con.execute(f"""
+    CREATE OR REPLACE TABLE als_candidates AS 
     SELECT
         als.*,
-        af.* EXCLUDE (af.article_id),
-        cf.* EXCLUDE (cf.customer_id),
-        (af.article_avg_price - cf.avg_price) / NULLIF(cf.std_price, 0) AS price_zscore,
+        af.* EXCLUDE (article_id),
+        cf.* EXCLUDE (customer_id),
+        COALESCE(
+            (af.article_avg_price - cf.avg_price) / NULLIF(cf.std_price, 0),
+            0
+        ) AS price_zscore,
         af.article_avg_price / NULLIF(cf.median_price, 0) AS price_ratio_median,
         ABS(af.article_avg_price - cf.median_price) AS price_distance_median
     FROM als_candidates als
     LEFT JOIN article_features af ON als.article_id = af.article_id
     LEFT JOIN customer_features cf ON als.customer_id = cf.customer_id
+""")
+
+# %% Создание таргета
+df = con.execute(f"""
+    WITH target AS (
+        SELECT DISTINCT customer_id, article_id
+        FROM transactions
+        WHERE t_dat BETWEEN '{dates['test_start']}' AND '{dates['test_end']}'        
+    )
+
+    SELECT 
+        als.*,
+        CASE
+            WHEN t.customer_id IS NOT NULL THEN 1
+            ELSE 0
+        END AS target
+    FROM als_candidates als
+    LEFT JOIN target t 
+        ON als.customer_id = t.customer_id
+        AND als.article_id = t.article_id     
 """).df()
 
 # %% Сохранение датасета
