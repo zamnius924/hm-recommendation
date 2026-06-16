@@ -1,10 +1,9 @@
 # %%  Импорт библиотек
+import datetime as dt
 import duckdb
 import json
-import pyarrow
-import datetime as dt
 import pandas as pd
-import matplotlib.pyplot as plt
+import pyarrow
 
 from scripts.load_db import load_db
 
