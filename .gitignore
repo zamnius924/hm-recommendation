@@ -3,3 +3,4 @@ loader_.py
 __pycache__
 .DS_Store
 *.parquet
+*.tmp
