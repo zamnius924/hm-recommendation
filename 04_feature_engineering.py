@@ -57,6 +57,9 @@ con.execute(f"""
         COUNT(*) FILTER (
             WHERE t_dat > (DATE('{dates['train_end']}') - INTERVAL '14 days')
         ) AS article_purchase_count_14d,
+        COUNT(*) FILTER (
+            WHERE t_dat > (DATE('{dates['train_end']}') - INTERVAL '30 days')
+        ) AS article_purchase_count_30d,
         AVG(price) AS article_avg_price
     FROM transactions
     WHERE t_dat BETWEEN '{dates['train_start']}' AND '{dates['train_end']}'
@@ -66,6 +69,7 @@ con.execute(f"""
 # %% Article age
 con.execute(f"""
     CREATE OR REPLACE TABLE article_features AS
+            
     WITH article_age AS (
         SELECT
             article_id,
@@ -74,6 +78,7 @@ con.execute(f"""
         FROM transactions
         GROUP BY article_id
     )
+
     SELECT f.*, a.* EXCLUDE (a.article_id)
     FROM article_features f
     LEFT JOIN article_age a ON f.article_id = a.article_id
@@ -205,12 +210,22 @@ con.execute(f"""
         AND a.garment_group_name = h_ga.garment_group_name
 """).df()
 
-# %%
-con.execute(f"""
-    SELECT DISTINCT garment_group_name
-    FROM articles
+# %% Финальный датафрейм с дополнительными customer-article features
+df = con.execute(f"""
+    SELECT
+        als.*,
+        af.* EXCLUDE (af.article_id),
+        cf.* EXCLUDE (cf.customer_id),
+        (af.article_avg_price - cf.avg_price) / NULLIF(cf.std_price, 0) AS price_zscore,
+        af.article_avg_price / NULLIF(cf.median_price, 0) AS price_ratio_median,
+        ABS(af.article_avg_price - cf.median_price) AS price_distance_median
+    FROM als_candidates als
+    LEFT JOIN article_features af ON als.article_id = af.article_id
+    LEFT JOIN customer_features cf ON als.customer_id = cf.customer_id
 """).df()
 
-# %%
-con.execute('SELECT * FROM als_candidates').df()
-# %%
+# %% Сохранение датасета
+df.to_parquet('data/features/ranking_features.parquet', 
+              engine='pyarrow', index=False)
+
+con.close()
