@@ -2,5 +2,7 @@ NOTES.md
 loader_.py
 __pycache__
 .DS_Store
+\articles
+\.tmp
+\.venv
 *.parquet
-*.tmp
