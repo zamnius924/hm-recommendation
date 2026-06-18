@@ -1,12 +1,12 @@
-def window_extraction(con, dates: dict, sample: str):
+def window_extraction(con, dates: dict):
 
     # Выделение feature-window
     df_feature = con.execute(f"""
         SELECT *
         FROM transactions
         WHERE t_dat BETWEEN 
-            '{dates[sample]['feature_window_start']}' AND 
-            '{dates[sample]['feature_window_end']}'
+            '{dates['feature_window_start']}' AND 
+            '{dates['feature_window_end']}'
     """).df()
 
     # Выделение target-window
@@ -14,8 +14,8 @@ def window_extraction(con, dates: dict, sample: str):
         SELECT *
         FROM transactions
         WHERE t_dat BETWEEN 
-            '{dates[sample]['target_window_start']}' AND 
-            '{dates[sample]['target_window_end']}'
+            '{dates['target_window_start']}' AND 
+            '{dates['target_window_end']}'
     """).df()
 
     print(f'Кол-во наблюдений на feature_window: {len(df_feature)}')
