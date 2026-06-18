@@ -29,20 +29,20 @@ max_date_test = df_dates.max_date[0] - dt.timedelta(weeks=2)
 # Словарь с границами окон
 dates = {
     'train':{
-        'traget_window_end': max_date_train,
-        'traget_window_start': max_date_train - dt.timedelta(days=6),
+        'target_window_end': max_date_train,
+        'target_window_start': max_date_train - dt.timedelta(days=6),
         'feature_window_end': max_date_train - dt.timedelta(weeks=1),
         'feature_window_start': max_date_train - dt.timedelta(weeks=9)
     },
     'valid':{
-        'traget_window_end': max_date_valid,
-        'traget_window_start': max_date_valid - dt.timedelta(days=6),
+        'target_window_end': max_date_valid,
+        'target_window_start': max_date_valid - dt.timedelta(days=6),
         'feature_window_end': max_date_valid - dt.timedelta(weeks=1),
         'feature_window_start': max_date_valid - dt.timedelta(weeks=9)
     },
     'test':{
-        'traget_window_end': max_date_test,
-        'traget_window_start': max_date_test - dt.timedelta(days=6),
+        'target_window_end': max_date_test,
+        'target_window_start': max_date_test - dt.timedelta(days=6),
         'feature_window_end': max_date_test - dt.timedelta(weeks=1),
         'feature_window_start': max_date_test - dt.timedelta(weeks=9)
     }
