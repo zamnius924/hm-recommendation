@@ -3,7 +3,6 @@ import datetime as dt
 import duckdb
 import json
 import pandas as pd
-import pyarrow
 
 from scripts.load_db import load_db
 
@@ -21,12 +20,32 @@ df_dates = con.execute("""
 
 df_dates
 
-# %% Определение границ тестовой и тренировочной выборок
+# %% Определение границ тестовой, валидационной и тренировочной выборок
+# Окончания периодов
+max_date_train = df_dates.max_date[0]
+max_date_valid = df_dates.max_date[0] - dt.timedelta(weeks=1)
+max_date_test = df_dates.max_date[0] - dt.timedelta(weeks=2)
+
+# Словарь с границами окон
 dates = {
-    'test_end':     df_dates.max_date[0],
-    'test_start':   df_dates.max_date[0] - dt.timedelta(days=6),
-    'train_end':    df_dates.max_date[0] - dt.timedelta(weeks=1),
-    'train_start':  df_dates.max_date[0] - dt.timedelta(weeks=9)
+    'train':{
+        'traget_window_end': max_date_train,
+        'traget_window_start': max_date_train - dt.timedelta(days=6),
+        'feature_window_end': max_date_train - dt.timedelta(weeks=1),
+        'feature_window_start': max_date_train - dt.timedelta(weeks=9)
+    },
+    'valid':{
+        'traget_window_end': max_date_valid,
+        'traget_window_start': max_date_valid - dt.timedelta(days=6),
+        'feature_window_end': max_date_valid - dt.timedelta(weeks=1),
+        'feature_window_start': max_date_valid - dt.timedelta(weeks=9)
+    },
+    'test':{
+        'traget_window_end': max_date_test,
+        'traget_window_start': max_date_test - dt.timedelta(days=6),
+        'feature_window_end': max_date_test - dt.timedelta(weeks=1),
+        'feature_window_start': max_date_test - dt.timedelta(weeks=9)
+    }
 }
 
 dates
@@ -35,20 +54,5 @@ dates
 with open(file='data/processed/split_dates.json', mode='w') as file:
     json.dump(dates, file, indent=4, default=str)
 
-# %% Сохранение train- и test-датасетов
-data_train = con.execute(f"""
-    SELECT *
-    FROM transactions
-    WHERE t_dat BETWEEN '{dates['train_start']}' AND '{dates['train_end']}'
-""").df()
-
-data_test = con.execute(f"""
-    SELECT *
-    FROM transactions
-    WHERE t_dat BETWEEN '{dates['test_start']}' AND '{dates['test_end']}'
-""").df()
-
-data_train.to_parquet("data/processed/dataset_train.parquet", engine="pyarrow")
-data_test.to_parquet("data/processed/dataset_test.parquet", engine="pyarrow")
-
+# Закрытие подключение к БД
 con.close()
