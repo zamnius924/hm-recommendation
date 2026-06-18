@@ -3,58 +3,72 @@ import json
 import numpy as np
 import optuna
 import pandas as pd
-import pyarrow
 
 from implicit.als import AlternatingLeastSquares
-from implicit.evaluation import precision_at_k
+from implicit.evaluation import mean_average_precision_at_k
 from scipy.sparse import csr_matrix
 from scripts.als_tuning_objective import als_tuning_objective
 from scripts.build_mapping import build_mapping
+from scripts.load_db import load_db
 from scripts.sparse_interaction_matrix import sparse_interaction_matrix
+from scripts.window_extraction import window_extraction
 
-# %% Импорт данных
-df_train = pd.read_parquet('data/processed/dataset_train.parquet', engine='pyarrow')
-df_test = pd.read_parquet('data/processed/dataset_test.parquet', engine='pyarrow')
+# %% Подключение к БД и загрузка данных
+con = load_db()
+con.execute("SHOW TABLES").df()
 
-print(f'Кол-во наблюдений на train: {len(df_train)}')
-print(f'Кол-во наблюдений на test: {len(df_test)}')
+# Временное разделение на train-, valid- и test-выборки
+with open(file='data/processed/split_dates.json', mode='r') as file:
+    dates = json.load(file)
 
-# %% Создание мэппинга для train-выборки
-mapping = build_mapping(df_train)
+# %% Выделение target- и feature-window на valid-выборке
+df_feature, df_target = window_extraction(con, dates['valid'])
 
-# %% Оставляем на test-выборке только тех, кто был в train-выборке (train-only mapping)
-df_test = df_test[
-    df_test.customer_id.isin(mapping["customer_id2index"])
-    & df_test.article_id.isin(mapping["article_id2index"])
+# %% Создание мэппинга для feature-window
+mapping = build_mapping(df_feature)
+
+# %% Оставляем на target-window только тех, кто был в feature-window
+df_target = df_target[
+    df_target.customer_id.isin(mapping["customer_id2index"])
+    & df_target.article_id.isin(mapping["article_id2index"])
 ]
 
-print(f'Кол-во наблюдений на test после фильтрации: {len(df_test)}')
+print(f'Кол-во наблюдений на test после фильтрации: {len(df_target)}')
 
 # %% Матрицы взаимодействия
-# Train-выборка
-train_interaction_matrix = sparse_interaction_matrix(
-    df_train,
+# feature-window
+feature_interaction_matrix = sparse_interaction_matrix(
+    df_feature,
     mapping['customer_id2index'],
     mapping['article_id2index']
 )
-# Test-выборка
-test_interaction_matrix = sparse_interaction_matrix(
-    df_test,
+# target-window
+target_interaction_matrix = sparse_interaction_matrix(
+    df_target,
     mapping['customer_id2index'],
     mapping['article_id2index']
 )
+
+# %% Количество рекомендаций на каждого пользователя
+n_recommendation = 100
 
 # %% Тюнинг гиперпараметров
 study = optuna.create_study(direction='maximize')
 
 study.optimize(
-    lambda trial: als_tuning_objective(trial, train_interaction_matrix, test_interaction_matrix), 
+    lambda trial: als_tuning_objective(trial, 
+                                       feature_interaction_matrix,
+                                       target_interaction_matrix,
+                                       n_recommendation), 
     n_trials=25
 )
 
 print(f"\nBest params: {study.best_params}")
-print(f"Best precision@10: {study.best_value:.4f}")
+print(f"Best MAP@{n_recommendation}: {study.best_value:.4f}")
 
 # %% Сохранение оптимальных гиперпараметров
+als_best_params = study.best_params
+als_best_params['K'] = n_recommendation
+
 with open(file='models/als_best_params.json', mode='w') as file:
-    json.dump(study.best_params, file, indent=4)
+    json.dump(als_best_params, file, indent=4)

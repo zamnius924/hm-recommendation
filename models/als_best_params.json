@@ -1,6 +1,7 @@
 {
-    "factors": 192,
-    "regularization": 0.013547676180174068,
+    "factors": 224,
+    "regularization": 0.0004908763181912983,
     "iterations": 25,
-    "alpha": 15.581829720893339
+    "alpha": 23.828606813206328,
+    "K": 100
 }
