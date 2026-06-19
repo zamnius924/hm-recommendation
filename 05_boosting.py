@@ -38,4 +38,4 @@ model.fit(train_pool)
 y_hat_train = model.predict(train_pool)
 
 # %%
-map_at_k()
+map_at_k(df_train, y_hat_train)
