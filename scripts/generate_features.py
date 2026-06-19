@@ -117,6 +117,8 @@ def generate_features(con, split_dates, als_candidates):
     # ------------------------- Фичи: покупатель-продукт ------------------------- #
     logger.info('[4/7] Build customer-article features')
     
+    max_days = 9999 # кол-во дней с покупки товара, который не был куплен
+
     con.execute(f"""
         CREATE OR REPLACE TABLE als_candidates AS        
 
@@ -125,8 +127,8 @@ def generate_features(con, split_dates, als_candidates):
             SELECT 
                 customer_id,
                 article_id,
-                (DATE('{split_dates['feature_window_end']}') - MAX(t_dat)) AS days_since_last_article_purchase,
-                COUNT(*) AS count_same_article_purchases
+                COALESCE(DATE('{split_dates['feature_window_end']}') - MAX(t_dat), {max_days}) AS days_since_last_article_purchase,
+                COALESCE(COUNT(*), 0) AS count_same_article_purchases
             FROM transactions
             WHERE t_dat <= '{split_dates['feature_window_end']}'
             GROUP BY customer_id, article_id
@@ -137,8 +139,8 @@ def generate_features(con, split_dates, als_candidates):
             SELECT
                 t.customer_id,
                 a.product_type_name,
-                (DATE('{split_dates['feature_window_end']}') - MAX(t.t_dat)) AS days_since_last_type_purchase,
-                COUNT(*) AS count_same_type_purchases
+                COALESCE(DATE('{split_dates['feature_window_end']}') - MAX(t.t_dat), {max_days}) AS days_since_last_type_purchase,
+                COALESCE(COUNT(*), 0) AS count_same_type_purchases
             FROM transactions t
             LEFT JOIN articles a ON t.article_id = a.article_id
             WHERE t_dat <= '{split_dates['feature_window_end']}'
@@ -150,8 +152,8 @@ def generate_features(con, split_dates, als_candidates):
             SELECT
                 t.customer_id,
                 a.department_name,
-                (DATE('{split_dates['feature_window_end']}') - MAX(t.t_dat)) AS days_since_last_department_purchase,
-                COUNT(*) AS count_same_department_purchases
+                COALESCE(DATE('{split_dates['feature_window_end']}') - MAX(t.t_dat), {max_days}) AS days_since_last_department_purchase,
+                COALESCE(COUNT(*), 0) AS count_same_department_purchases
             FROM transactions t
             LEFT JOIN articles a ON t.article_id = a.article_id
             WHERE t_dat <= '{split_dates['feature_window_end']}'
@@ -163,8 +165,8 @@ def generate_features(con, split_dates, als_candidates):
             SELECT
                 t.customer_id,
                 a.product_group_name,
-                (DATE('{split_dates['feature_window_end']}') - MAX(t.t_dat)) AS days_since_last_group_purchase,
-                COUNT(*) AS count_same_group_purchases
+                COALESCE(DATE('{split_dates['feature_window_end']}') - MAX(t.t_dat), {max_days}) AS days_since_last_group_purchase,
+                COALESCE(COUNT(*), 0) AS count_same_group_purchases
             FROM transactions t
             LEFT JOIN articles a ON t.article_id = a.article_id
             WHERE t_dat <= '{split_dates['feature_window_end']}'
@@ -176,8 +178,8 @@ def generate_features(con, split_dates, als_candidates):
             SELECT
                 t.customer_id,
                 a.colour_group_name,
-                (DATE('{split_dates['feature_window_end']}') - MAX(t.t_dat)) AS days_since_last_colour_purchase,
-                COUNT(*) AS count_same_colour_purchases
+                COALESCE(DATE('{split_dates['feature_window_end']}') - MAX(t.t_dat), {max_days}) AS days_since_last_colour_purchase,
+                COALESCE(COUNT(*), 0) AS count_same_colour_purchases
             FROM transactions t
             LEFT JOIN articles a ON t.article_id = a.article_id
             WHERE t_dat <= '{split_dates['feature_window_end']}'
@@ -189,8 +191,8 @@ def generate_features(con, split_dates, als_candidates):
             SELECT
                 t.customer_id,
                 a.garment_group_name,
-                (DATE('{split_dates['feature_window_end']}') - MAX(t.t_dat)) AS days_since_last_garment_purchase,
-                COUNT(*) AS count_same_garment_purchases
+                COALESCE(DATE('{split_dates['feature_window_end']}') - MAX(t.t_dat), {max_days}) AS days_since_last_garment_purchase,
+                COALESCE(COUNT(*), 0) AS count_same_garment_purchases
             FROM transactions t
             LEFT JOIN articles a ON t.article_id = a.article_id
             WHERE t_dat <= '{split_dates['feature_window_end']}'
