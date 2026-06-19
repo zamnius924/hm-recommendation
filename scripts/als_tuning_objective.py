@@ -1,9 +1,9 @@
 import optuna
 
 from implicit.als import AlternatingLeastSquares
-from implicit.evaluation import precision_at_k
+from implicit.evaluation import mean_average_precision_at_k
 
-def als_tuning_objective(trial, train_interaction_matrix, test_interaction_matrix):
+def als_tuning_objective(trial, train_interaction_matrix, test_interaction_matrix, K):
 
     # Возможные значения гиперпараметров
     factors = trial.suggest_int('factors', 32, 256, step=32)
@@ -22,14 +22,14 @@ def als_tuning_objective(trial, train_interaction_matrix, test_interaction_matri
 
     als_model.fit(train_interaction_matrix)
 
-    # Предсказание
-    prec_at_10 = precision_at_k(
+    # Оценка качества
+    quality = mean_average_precision_at_k(
         als_model,
         train_interaction_matrix,
         test_interaction_matrix,
-        K=10,
+        K=K,
         show_progress=False
     )
 
-    return prec_at_10
+    return quality
 
