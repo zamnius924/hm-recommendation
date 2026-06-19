@@ -8,7 +8,7 @@ from scripts.generate_als_candidates import generate_als_candidates
 from scripts.generate_features import generate_features
 from scripts.load_db import load_db
 
-# %% 
+# %% Development: Перезапуск 
 import importlib
 import scripts.generate_als_candidates
 import scripts.generate_features
@@ -33,6 +33,13 @@ con = load_db()
 
 # %% Прогноз ALS
 als_candidates = generate_als_candidates(con, dates['train'], als_best_params)
+
+# %% Development: Сохранение кандидатов
+als_candidates.to_parquet('data/processed/als_candidates.parquet', 
+                          engine='pyarrow', index=False)
+
+# %% Development: Загрузка кандидатов
+als_candidates = pd.read_parquet('data/processed/als_candidates.parquet', engine='pyarrow')
 
 # %% Создание фичей
 df_train = generate_features(con, dates['train'], als_candidates)
