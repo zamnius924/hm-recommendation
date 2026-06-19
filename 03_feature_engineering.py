@@ -32,17 +32,24 @@ with open('models/als_best_params.json', mode='r') as file:
 con = load_db()
 
 # %% Прогноз ALS
-als_candidates = generate_als_candidates(con, dates['train'], als_best_params)
+als_candidates_train = generate_als_candidates(con, dates['train'], als_best_params)
+als_candidates_test = generate_als_candidates(con, dates['test'], als_best_params)
 
 # %% Development: Сохранение кандидатов
-als_candidates.to_parquet('data/processed/als_candidates.parquet', 
-                          engine='pyarrow', index=False)
+als_candidates_train.to_parquet('data/processed/als_candidates_train.parquet', 
+                                engine='pyarrow', index=False)
+als_candidates_test.to_parquet('data/processed/als_candidates_test.parquet', 
+                               engine='pyarrow', index=False)
 
 # %% Development: Загрузка кандидатов
-als_candidates = pd.read_parquet('data/processed/als_candidates.parquet', engine='pyarrow')
+als_candidates_train = pd.read_parquet('data/processed/als_candidates_train.parquet', 
+                                       engine='pyarrow')
+als_candidates_test = pd.read_parquet('data/processed/als_candidates_test.parquet', 
+                                      engine='pyarrow')
 
 # %% Создание фичей
-df_train = generate_features(con, dates['train'], als_candidates)
+df_train = generate_features(con, dates['train'], als_candidates_train)
+df_test = generate_features(con, dates['test'], als_candidates_test)
 
 # %% Отключение от БД
 con.close()
@@ -50,3 +57,5 @@ con.close()
 # %% Сохранение датасета
 df_train.to_parquet('data/processed/df_train.parquet', 
                     engine='pyarrow', index=False)
+df_test.to_parquet('data/processed/df_test.parquet', 
+                   engine='pyarrow', index=False)
