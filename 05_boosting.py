@@ -1,27 +1,19 @@
 # %%  Импорт библиотек
 import pandas as pd
 
-from catboost import CatBoostRanker, Pool
+from catboost import CatBoostRanker
+from scripts.generate_pool import generate_pool
 from scripts.map_at_k import map_at_k
 
 # %% Импорт данных
 df_train = pd.read_parquet('data/processed/df_train.parquet', engine='pyarrow')
+df_test = pd.read_parquet('data/processed/df_test.parquet', engine='pyarrow')
 
-# %% Правки
-df_train = df_train.drop('article_first_purchase_date', axis=1)
-df_train = df_train.sort_values('customer_id')
+# %% Создание пулов
+pool_train = generate_pool(df_train)
+pool_test = generate_pool(df_test)
 
-# %%
-y_train = df_train['target']
-X_train = df_train.drop(['customer_id', 'article_id', 'target'], axis=1)
-i_train = df_train['customer_id']
-
-train_pool = Pool(
-    data=X_train,
-    label=y_train,
-    group_id=i_train
-)
-# %%
+# %% Обучение CatBoost
 model = CatBoostRanker(
     loss_function='YetiRank',
     iterations=1000,
@@ -31,11 +23,8 @@ model = CatBoostRanker(
     verbose=100
 )
 
-model.fit(train_pool)
+model.fit(pool_train)
 
-
-# %%
-y_hat_train = model.predict(train_pool)
-
-# %%
-map_at_k(df_train, y_hat_train)
+# %% Оценка качества
+print(f'MAP@12 (train sample) = {map_at_k(df_train, model.predict(pool_train))}')
+print(f'MAP@12 (test sample) = {map_at_k(df_test, model.predict(pool_test))}')
