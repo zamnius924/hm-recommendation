@@ -5,9 +5,6 @@ from catboost import Pool
 def generate_pool(df):
 
     # ------------------------------ Правки к данным ----------------------------- #
-    # Сортировка по customer_id
-    df = df.sort_values('customer_id')
-
     # Удаление даты
     df = df.drop('article_first_purchase_date', axis=1)
 

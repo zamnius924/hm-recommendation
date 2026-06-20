@@ -316,7 +316,11 @@ def generate_features(con, split_dates, als_candidates):
     # ----------------------- Экспорт итогового датафрейма ----------------------- #
     logger.info('[7/7] Export dataframe')
     
-    df = con.execute('SELECT * FROM als_candidates').df()
+    df = con.execute("""
+        SELECT * 
+        FROM als_candidates
+        ORDER BY customer_id, article_id
+    """).df()
 
     logger.info(f'als_candidates: %s rows', f'{df.shape[0]:,}')
 
