@@ -6,7 +6,10 @@ def generate_pool(df):
 
     # ------------------------------ Правки к данным ----------------------------- #
     # Удаление даты
-    df = df.drop('article_first_purchase_date', axis=1)
+    df = df.drop(
+        ['article_first_purchase_date', 'article_last_purchase_date'], 
+        axis=1
+    )
 
     # ------------------------------- Создание Pool ------------------------------ #
     # Категории переменных
