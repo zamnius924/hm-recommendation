@@ -7,7 +7,7 @@ import pandas as pd
 from implicit.als import AlternatingLeastSquares
 from implicit.evaluation import mean_average_precision_at_k
 from scipy.sparse import csr_matrix
-from scripts.als_tuning_objective import als_tuning_objective
+from scripts.tuning_objective_als import tuning_objective_als
 from scripts.build_mapping import build_mapping
 from scripts.load_db import load_db
 from scripts.sparse_interaction_matrix import sparse_interaction_matrix
@@ -56,7 +56,7 @@ n_recommendation = 100
 study = optuna.create_study(direction='maximize')
 
 study.optimize(
-    lambda trial: als_tuning_objective(trial, 
+    lambda trial: tuning_objective_als(trial, 
                                        feature_interaction_matrix,
                                        target_interaction_matrix,
                                        n_recommendation), 

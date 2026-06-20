@@ -3,7 +3,7 @@ import optuna
 from implicit.als import AlternatingLeastSquares
 from implicit.evaluation import mean_average_precision_at_k
 
-def als_tuning_objective(trial, train_interaction_matrix, test_interaction_matrix, K):
+def tuning_objective_als(trial, train_interaction_matrix, test_interaction_matrix, K):
 
     # Возможные значения гиперпараметров
     factors = trial.suggest_int('factors', 32, 256, step=32)
