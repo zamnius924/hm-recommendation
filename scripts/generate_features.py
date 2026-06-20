@@ -21,6 +21,9 @@ def generate_features(con, split_dates, als_candidates):
 
         logger.info(f'{table}: %s rows', f'{n_rows:,}')
 
+    logger.info("=" * 80)
+    logger.info("Starting feature generation")
+    logger.info("=" * 80)
 
     # --------------------- Добавление ALS-рекомендаций в con -------------------- #
     logger.info('[1/7] Register ALS candidates')
@@ -40,14 +43,12 @@ def generate_features(con, split_dates, als_candidates):
     # ----------------------------- Фичи: покупатель ----------------------------- #
     logger.info('[2/7] Build customer features')
     
+    # Статистики по покупателю
     con.execute(f"""
         CREATE OR REPLACE TABLE customer_features AS
         SELECT
             t.customer_id,
             COUNT(*) AS num_purchases,
-            c.age AS customer_age,
-            c.club_member_status,
-            c.fashion_news_frequency,
             COUNT(DISTINCT t.article_id) AS num_unique_articles,
             COUNT(DISTINCT t.t_dat) AS num_purchase_days,
             '{split_dates['feature_window_end']}' - MAX(t.t_dat) AS days_since_last_purchase,
@@ -64,6 +65,29 @@ def generate_features(con, split_dates, als_candidates):
         GROUP BY t.customer_id
     """)
 
+    # Дополнительные характеристики покупателя
+    con.execute(f"""
+        CREATE OR REPLACE TABLE customer_features AS
+
+        -- Вспомогательные статистики для заполнения пропусков  
+        WITH stats AS (
+            SELECT
+                AVG(age) AS avg_age,
+                MODE(fashion_news_frequency) AS mode_fashion_news_frequency,
+                MODE(club_member_status) AS mode_club_member_status
+            FROM customers
+        )
+        
+        -- Добавление покупательских характеристик
+        SELECT
+            cf.*,
+            COALESCE(c.age, (SELECT avg_age FROM stats)) AS customer_age,
+            COALESCE(c.club_member_status, (SELECT mode_club_member_status FROM stats)) AS club_member_status,
+            COALESCE(c.fashion_news_frequency, (SELECT mode_fashion_news_frequency FROM stats)) AS fashion_news_frequency
+        FROM customer_features cf
+        LEFT JOIN customers c ON cf.customer_id = c.customer_id
+    """)
+
     # Размер таблицы
     row_counts('customer_features')
 
@@ -71,6 +95,7 @@ def generate_features(con, split_dates, als_candidates):
     # -------------------------------- Фичи: товар ------------------------------- #
     logger.info('[3/7] Build article features')
     
+    # Сатистики по товару
     con.execute(f"""
         CREATE OR REPLACE TABLE article_features AS
         SELECT 
@@ -87,7 +112,7 @@ def generate_features(con, split_dates, als_candidates):
                 WHERE t_dat > (DATE('{split_dates['feature_window_end']}') - INTERVAL '30 days')
             ) AS article_purchase_count_30d,
             AVG(price) AS article_avg_price,
-            ABS(sales_channel_id - 2) / COUNT(*) AS online_purchased_rate
+            AVG(ABS(sales_channel_id - 2)) AS online_purchased_rate
         FROM transactions
         WHERE t_dat BETWEEN 
             '{split_dates['feature_window_start']}' AND
@@ -106,10 +131,9 @@ def generate_features(con, split_dates, als_candidates):
                 MIN(t.t_dat) AS article_first_purchase_date, -- Дата первой продажи товара
                 MAX(t.t_dat) AS article_last_purchase_date, -- Дата последней продажи товара
                 (DATE('{split_dates['feature_window_end']}') - MIN(t.t_dat)) AS article_days_since_first_purchase, -- Кол-во дней с первой покупки
-                (DATE('{split_dates['feature_window_end']}') - MAX(t.t_dat)) AS article_days_since_last_purchase, -- Кол-во дней с последней покупки
+                (DATE('{split_dates['feature_window_end']}') - MAX(t.t_dat)) AS article_days_since_last_purchase -- Кол-во дней с последней покупки
             FROM transactions t
             WHERE t.t_dat <= '{split_dates['feature_window_end']}'
-            LEFT JOIN customers c ON c.customer_id = t.customer_id
             GROUP BY t.article_id
         ),
 
@@ -117,34 +141,34 @@ def generate_features(con, split_dates, als_candidates):
         customer_age AS (
             SELECT
                 t.article_id,
-                AVG(c.age) AS article_avg_customer_age -- Средний возраст покупателей товара
+                AVG(c.age) AS article_avg_customer_age, -- Средний возраст покупателей товара
                 COUNT(*) FILTER (WHERE c.age > 18 AND c.age <= 24) AS article_purchase_count_18_24,
                 COUNT(*) FILTER (WHERE c.age > 24 AND c.age <= 34) AS article_purchase_count_24_34,
                 COUNT(*) FILTER (WHERE c.age > 34 AND c.age <= 44) AS article_purchase_count_34_44,
                 COUNT(*) FILTER (WHERE c.age > 44 AND c.age <= 54) AS article_purchase_count_44_54,
                 COUNT(*) FILTER (WHERE c.age > 54 AND c.age <= 64) AS article_purchase_count_54_64,
                 COUNT(*) FILTER (WHERE c.age > 64) AS article_purchase_count_64_99
-            FROM transactions
+            FROM transactions t
+            LEFT JOIN customers c ON c.customer_id = t.customer_id
             WHERE t_dat BETWEEN 
                 '{split_dates['feature_window_start']}' AND
                 '{split_dates['feature_window_end']}'
-            LEFT JOIN customers c ON c.customer_id = t.customer_id
             GROUP BY article_id 
         )
 
         SELECT 
             f.*,
-            a.* EXCLUDE (a.article_id)
-            с.article_avg_customer_age,
-            article_purchase_count_18_24 / article_purchase_count AS article_purchase_share_18_24
-            article_purchase_count_24_34 / article_purchase_count AS article_purchase_share_24_34
-            article_purchase_count_34_44 / article_purchase_count AS article_purchase_share_34_44
-            article_purchase_count_44_54 / article_purchase_count AS article_purchase_share_44_54
-            article_purchase_count_54_64 / article_purchase_count AS article_purchase_share_54_64
-            article_purchase_count_64_99 / article_purchase_count AS article_purchase_share_64_99
+            a.* EXCLUDE (a.article_id),
+            c.article_avg_customer_age,
+            c.article_purchase_count_18_24 / NULLIF(f.article_purchase_count, 0) AS article_purchase_share_18_24,
+            c.article_purchase_count_24_34 / NULLIF(f.article_purchase_count, 0) AS article_purchase_share_24_34,
+            c.article_purchase_count_34_44 / NULLIF(f.article_purchase_count, 0) AS article_purchase_share_34_44,
+            c.article_purchase_count_44_54 / NULLIF(f.article_purchase_count, 0) AS article_purchase_share_44_54,
+            c.article_purchase_count_54_64 / NULLIF(f.article_purchase_count, 0) AS article_purchase_share_54_64,
+            c.article_purchase_count_64_99 / NULLIF(f.article_purchase_count, 0) AS article_purchase_share_64_99
         FROM article_features f
         LEFT JOIN article_age a ON f.article_id = a.article_id
-        LEFT JOIN customer_age с ON f.article_id = с.article_id
+        LEFT JOIN customer_age c ON f.article_id = c.article_id
     """)
 
     # Размер таблицы
