@@ -26,5 +26,28 @@ model = CatBoostRanker(
 model.fit(pool_train)
 
 # %% Оценка качества
-print(f'MAP@12 (train sample) = {map_at_k(df_train, model.predict(pool_train))}')
-print(f'MAP@12 (test sample) = {map_at_k(df_test, model.predict(pool_test))}')
+print(f'Most popular: MAP@12 (train sample) = {map_at_k(df_train, df_train.article_purchase_count_7d)}')
+print(f'Most popular: MAP@12 (test sample) = {map_at_k(df_test, df_test.article_purchase_count_7d)}')
+
+print(f'ALS: MAP@12 (train sample) = {map_at_k(df_train, df_train.article_score)}')
+print(f'ALS: MAP@12 (test sample) = {map_at_k(df_test, df_test.article_score)}')
+
+print(f'ALS + Boosting: MAP@12 (train sample) = {map_at_k(df_train, model.predict(pool_train))}')
+print(f'ALS + Boosting: MAP@12 (test sample) = {map_at_k(df_test, model.predict(pool_test))}')
+
+# %%
+feature_importance_train = pd.DataFrame({
+    'feature': pool_train.get_feature_names(),
+    'importance': model.get_feature_importance(pool_train)
+}).sort_values('importance', ascending=False)
+
+feature_importance_test = pd.DataFrame({
+    'feature': pool_train.get_feature_names(),
+    'importance': model.get_feature_importance(pool_test)
+}).sort_values('importance', ascending=False)
+
+print(feature_importance_train.head(20))
+print(feature_importance_test.head(20))
+
+# %%
+model.plot_tree(tree_idx=0)
