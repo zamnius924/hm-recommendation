@@ -11,6 +11,13 @@ def generate_pool(df):
         axis=1
     )
 
+    # Указание cat_features
+    cat_cols = [
+        'club_member_status',
+        'fashion_news_frequency',
+    ]
+
+
     # ------------------------------- Создание Pool ------------------------------ #
     # Категории переменных
     i = df['customer_id'] # идентификатор покупателя
@@ -21,7 +28,8 @@ def generate_pool(df):
     pool = Pool(
         data=X,
         label=y,
-        group_id=i
+        group_id=i,
+        cat_features=cat_cols
     )
 
     return pool
