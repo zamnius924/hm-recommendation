@@ -1,12 +1,10 @@
 # %%  Импорт библиотек
-from catboost import CatBoostRanker
 import json
 import optuna
 import pandas as pd
 
 from scripts.tuning_objective_ltr import tuning_objective_ltr
 from scripts.generate_pool import generate_pool
-from scripts.map_at_k import map_at_k
 
 # %% Импорт данных
 df_train = pd.read_parquet('data/processed/df_train.parquet', engine='pyarrow')
