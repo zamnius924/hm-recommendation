@@ -1,29 +1,31 @@
 # %%  Импорт библиотек
+import json
 import pandas as pd
 
 from catboost import CatBoostRanker
 from scripts.generate_pool import generate_pool
 from scripts.map_at_k import map_at_k
 
-# %% Импорт данных
+# %% Импорт
+# Загрузка данных
 df_train = pd.read_parquet('data/processed/df_train.parquet', engine='pyarrow')
 df_test = pd.read_parquet('data/processed/df_test.parquet', engine='pyarrow')
+
+# Загрузка параметров
+with open(file='models/ltr_best_params.json', mode='r') as file:
+    ltr_best_params = json.load(file)
 
 # %% Создание пулов
 pool_train = generate_pool(df_train)
 pool_test = generate_pool(df_test)
 
 # %% Обучение CatBoost
-model = CatBoostRanker(
-    loss_function='YetiRank',
-    iterations=1000,
-    depth=8,
-    learning_rate=0.05,
-    random_seed=42,
-    verbose=100
-)
+model = CatBoostRanker(**ltr_best_params['model'])
 
-model.fit(pool_train)
+model.fit(
+    pool_train,
+    eval_set=pool_test,
+    **ltr_best_params['fit'])
 
 # %% Оценка качества
 print(f'Most popular: MAP@12 (train sample) = {map_at_k(df_train, df_train.article_purchase_count_7d)}')
@@ -51,3 +53,15 @@ print(feature_importance_test.head(20))
 
 # %%
 model.plot_tree(tree_idx=0)
+
+# %% Сохранение
+# Модель
+model.save_model('models/ltr_model.cbm')
+
+# Параметры модели
+model_info = {
+    'map12': map_at_k(df_test, model.predict(pool_test)),
+    'best_iteration': model.get_best_iteration()
+}
+with open(file='models/ltr_model_info.json', mode='w') as file:
+    json.dump(model_info, file, indent=4)
