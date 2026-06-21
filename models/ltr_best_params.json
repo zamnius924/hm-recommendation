@@ -1,5 +1,15 @@
 {
-    "depth": 6,
-    "learning_rate": 0.050746914127711776,
-    "l2_leaf_reg": 1.0232257606505155
+    "model": {
+        "loss_function": "YetiRank",
+        "iterations": 5000,
+        "random_seed": 42,
+        "depth": 6,
+        "learning_rate": 0.050746914127711776,
+        "l2_leaf_reg": 1.0232257606505155
+    },
+    "fit": {
+        "use_best_model": true,
+        "early_stopping_rounds": 200,
+        "verbose": false
+    }
 }

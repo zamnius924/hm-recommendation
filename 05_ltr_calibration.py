@@ -14,11 +14,26 @@ df_valid = pd.read_parquet('data/processed/df_valid.parquet', engine='pyarrow')
 pool_train = generate_pool(df_train)
 pool_valid = generate_pool(df_valid)
 
+# %% Фиксированные параметры для бустинга
+params = {
+    'model': {
+        'loss_function': 'YetiRank',
+        'iterations': 5000,
+        'random_seed': 42,
+    },
+    'fit': {
+        'use_best_model': True,
+        'early_stopping_rounds': 200,
+        'verbose': False
+    }
+}
+
 # %% Тюнинг гиперпараметров
 study = optuna.create_study(direction='maximize')
 
 study.optimize(
     lambda trial: tuning_objective_ltr(trial, 
+                                       params,
                                        pool_train,
                                        pool_valid,
                                        df_valid), 
@@ -29,7 +44,10 @@ print(f"\nBest params: {study.best_params}")
 print(f"Best MAP@12: {study.best_value:.4f}")
 
 # %% Сохранение оптимальных гиперпараметров
-ltr_best_params = study.best_params
+ltr_best_params = {
+    'model': params['model'] | study.best_params,
+    'fit': params['fit']
+}
 
 with open(file='models/ltr_best_params.json', mode='w') as file:
     json.dump(ltr_best_params, file, indent=4)
