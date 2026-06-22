@@ -21,30 +21,46 @@ df_dates = con.execute("""
 df_dates
 
 # %% Определение границ тестовой, валидационной и тренировочной выборок
+# Параметры окон
+window_length_target = dt.timedelta(days=6)
+window_length_feature = dt.timedelta(weeks=8)
+
 # Окончания периодов
-max_date_train = df_dates.max_date[0]
-max_date_valid = df_dates.max_date[0] - dt.timedelta(weeks=1)
-max_date_test = df_dates.max_date[0] - dt.timedelta(weeks=2)
+max_date_train_target = df_dates.max_date[0]
+max_date_train_feature = max_date_train_target - \
+    (window_length_target + dt.timedelta(days=1))
+
+max_date_valid_target = max_date_train_feature
+max_date_valid_feature = max_date_valid_target - \
+    (window_length_target + dt.timedelta(days=1))
+
+max_date_test_target = max_date_valid_feature
+max_date_test_feature = max_date_test_target - \
+    (window_length_target + dt.timedelta(days=1))
 
 # Словарь с границами окон
 dates = {
-    'train':{
-        'target_window_end': max_date_train,
-        'target_window_start': max_date_train - dt.timedelta(days=6),
-        'feature_window_end': max_date_train - dt.timedelta(weeks=1),
-        'feature_window_start': max_date_train - dt.timedelta(weeks=9)
+    'train': {
+        'target_window_end': max_date_train_target,
+        'target_window_start': max_date_train_target - window_length_target,
+        'feature_window_end': max_date_train_feature,
+        'feature_window_start': max_date_train_feature - window_length_feature
     },
-    'valid':{
-        'target_window_end': max_date_valid,
-        'target_window_start': max_date_valid - dt.timedelta(days=6),
-        'feature_window_end': max_date_valid - dt.timedelta(weeks=1),
-        'feature_window_start': max_date_valid - dt.timedelta(weeks=9)
+    'valid': {
+        'target_window_end': max_date_valid_target,
+        'target_window_start': max_date_valid_target - window_length_target,
+        'feature_window_end': max_date_valid_feature,
+        'feature_window_start': max_date_valid_feature - window_length_feature
     },
-    'test':{
-        'target_window_end': max_date_test,
-        'target_window_start': max_date_test - dt.timedelta(days=6),
-        'feature_window_end': max_date_test - dt.timedelta(weeks=1),
-        'feature_window_start': max_date_test - dt.timedelta(weeks=9)
+    'test': {
+        'target_window_end': max_date_test_target,
+        'target_window_start': max_date_test_target - window_length_target,
+        'feature_window_end': max_date_test_feature,
+        'feature_window_start': max_date_test_feature - window_length_feature
+    },
+    'window_length': {
+        'target': window_length_target,
+        'feature': window_length_feature
     }
 }
 

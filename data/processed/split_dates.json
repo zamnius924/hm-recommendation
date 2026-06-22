@@ -16,5 +16,9 @@
         "target_window_start": "2020-09-02 00:00:00",
         "feature_window_end": "2020-09-01 00:00:00",
         "feature_window_start": "2020-07-07 00:00:00"
+    },
+    "window_length": {
+        "target": "6 days, 0:00:00",
+        "feature": "56 days, 0:00:00"
     }
 }
