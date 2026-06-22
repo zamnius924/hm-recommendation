@@ -1,4 +1,5 @@
 import logging
+import pandas as pd
 
 # Конфигурации логгера
 logging.basicConfig(
@@ -9,7 +10,12 @@ logging.basicConfig(
 # Объявление логгера
 logger = logging.getLogger(__name__)
 
-def generate_features(con, split_dates, als_candidates):
+def generate_features(
+        con, 
+        split_dates: dict, 
+        als_candidates: pd.DataFrame, 
+        target: bool = True
+    ):
 
     # Счетчик строк в таблице
     def row_counts(table: str):
@@ -346,30 +352,33 @@ def generate_features(con, split_dates, als_candidates):
 
 
     # ---------------------------------- Таргет ---------------------------------- #
-    logger.info('[6/7] Build target')
-    
-    con.execute(f"""
-        CREATE OR REPLACE TABLE als_candidates AS         
-        
-        WITH target AS (
-            SELECT DISTINCT customer_id, article_id
-            FROM transactions
-            WHERE t_dat BETWEEN 
-                '{split_dates['target_window_start']}' AND
-                '{split_dates['target_window_end']}'
-        )
+    if target:
+        logger.info('[6/7] Build target')
 
-        SELECT 
-            als.*,
-            CASE
-                WHEN t.customer_id IS NOT NULL THEN 1
-                ELSE 0
-            END AS target
-        FROM als_candidates als
-        LEFT JOIN target t 
-            ON als.customer_id = t.customer_id
-            AND als.article_id = t.article_id     
-    """)
+        con.execute(f"""
+            CREATE OR REPLACE TABLE als_candidates AS         
+
+            WITH target AS (
+                SELECT DISTINCT customer_id, article_id
+                FROM transactions
+                WHERE t_dat BETWEEN 
+                    '{split_dates['target_window_start']}' AND
+                    '{split_dates['target_window_end']}'
+            )
+
+            SELECT 
+                als.*,
+                CASE
+                    WHEN t.customer_id IS NOT NULL THEN 1
+                    ELSE 0
+                END AS target
+            FROM als_candidates als
+            LEFT JOIN target t 
+                ON als.customer_id = t.customer_id
+                AND als.article_id = t.article_id     
+        """)
+    else:
+        logger.info('[6/7] Skip target')
 
 
     # ----------------------- Экспорт итогового датафрейма ----------------------- #
