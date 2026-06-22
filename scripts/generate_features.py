@@ -14,7 +14,8 @@ def generate_features(
         con, 
         split_dates: dict, 
         als_candidates: pd.DataFrame, 
-        target: bool = True
+        target: bool = True,
+        return_con: bool = False
     ):
 
     # Счетчик строк в таблице
@@ -41,6 +42,9 @@ def generate_features(
         SELECT *
         FROM als_candidates_df
     """)
+
+    # Удаление вспомогательной таблицы als_candidates_df
+    con.unregister("als_candidates_df")
 
     # Размер таблицы
     row_counts('als_candidates')
@@ -382,14 +386,39 @@ def generate_features(
 
 
     # ----------------------- Экспорт итогового датафрейма ----------------------- #
-    logger.info('[7/7] Export dataframe')
-    
-    df = con.execute("""
-        SELECT * 
-        FROM als_candidates
-        ORDER BY customer_id, article_id
-    """).df()
+    if not return_con:
+        logger.info('[7/7] Export dataframe')
 
-    logger.info(f'als_candidates: %s rows', f'{df.shape[0]:,}')
+        # Сортировка датафрейма и экспорт в pandas
+        df = con.execute("""
+            SELECT * 
+            FROM als_candidates
+            ORDER BY customer_id, article_id
+        """).df()
 
-    return df
+        logger.info(f'als_candidates: %s rows', f'{df.shape[0]:,}')
+
+        return df
+    else:
+        logger.info('[7/7] Export connector')
+
+        # Сортировка датафрейма
+        con.execute("""
+            CREATE OR REPLACE TABLE als_candidates AS
+            SELECT * 
+            FROM als_candidates
+            ORDER BY customer_id, article_id
+        """)
+
+        # Удаление других таблиц
+        tables = con.execute("""
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = 'main'
+        """).fetchall()
+
+        for (table,) in tables:
+            if table != 'als_candidates':
+                con.execute(f"DROP TABLE IF EXISTS {table}")
+
+        return con
