@@ -72,3 +72,6 @@ als_best_params['K'] = n_recommendation
 
 with open(file='models/als_best_params.json', mode='w') as file:
     json.dump(als_best_params, file, indent=4)
+
+# %% Отключение от БД
+con.close()
