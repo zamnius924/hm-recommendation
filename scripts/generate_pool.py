@@ -2,7 +2,7 @@ import pandas as pd
 
 from catboost import Pool
 
-def generate_pool(df):
+def generate_pool(df, target: bool = True):
 
     # ------------------------------ Правки к данным ----------------------------- #
     # Удаление даты
@@ -21,15 +21,26 @@ def generate_pool(df):
     # ------------------------------- Создание Pool ------------------------------ #
     # Категории переменных
     i = df['customer_id'] # идентификатор покупателя
-    y = df['target'] # таргет
-    X = df.drop(['customer_id', 'article_id', 'target'], axis=1) # фичи
     
-    # Объявление Pool
-    pool = Pool(
-        data=X,
-        label=y,
-        group_id=i,
-        cat_features=cat_cols
-    )
+    if target:
+        X = df.drop(['customer_id', 'article_id', 'target'], axis=1) # фичи
+        y = df['target'] # таргет
+
+        # Объявление Pool
+        pool = Pool(
+            data=X,
+            label=y,
+            group_id=i,
+            cat_features=cat_cols
+        )
+    else:
+        X = df.drop(['customer_id', 'article_id'], axis=1) # фичи
+
+        # Объявление Pool
+        pool = Pool(
+            data=X,
+            group_id=i,
+            cat_features=cat_cols
+        )
 
     return pool
