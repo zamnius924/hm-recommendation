@@ -6,11 +6,16 @@ from scripts.build_mapping import build_mapping
 from scripts.sparse_interaction_matrix import sparse_interaction_matrix
 from scripts.window_extraction import window_extraction
 
-def generate_als_candidates(con, split_dates, als_params):
+def generate_als_candidates(
+        con,
+        split_dates: dict,
+        als_params: dict,
+        target: bool = True
+    ):
 
     # ------------------------- Предопределение объектов ------------------------- #
     # Выделение target- и feature-window
-    df_feature, df_target = window_extraction(con, split_dates)
+    df_feature, df_target = window_extraction(con, split_dates, target)
 
     # Создание мэппинга для feature-window
     mapping = build_mapping(df_feature)
@@ -38,17 +43,22 @@ def generate_als_candidates(con, split_dates, als_params):
 
 
     # ---------- Дополнительные ограничения на feature- и target-window ---------- #
-    # target-window: только те, кто был в feature-window
-    known_customers = mapping["customer_id2index"].keys()
-    known_articles = mapping["article_id2index"].keys()
+    if target:
+        # target-window: только те, кто был в feature-window
+        known_customers = mapping['customer_id2index'].keys()
+        known_articles = mapping['article_id2index'].keys()
 
-    df_target = df_target[
-        df_target['customer_id'].isin(known_customers)
-        & df_target['article_id'].isin(known_articles)
-    ]
+        df_target = df_target[
+            df_target['customer_id'].isin(known_customers)
+            & df_target['article_id'].isin(known_articles)
+        ]
 
-    # feature-window: только те, кто совершили покупку в target-window
-    active_customers = set(df_target.customer_id)
+        # feature-window: только те, кто совершили покупку в target-window
+        active_customers = set(df_target.customer_id)
+    else:
+        # активными считаются все пользователи в feature-window
+        active_customers = set(df_feature.customer_id)
+    
     customer_index = [ # Индексы покупателей, для которых строим рекомендации
         mapping['customer_id2index'][customer]
         for customer in active_customers
