@@ -23,8 +23,8 @@ def load_db(data_path='data/raw'): # db_path='data/hnm_recommendations.db'
             query_mid = "SELECT CAST(t_dat AS DATE) AS t_dat, * EXCLUDE (t_dat)"
     
         con.execute(f"""
-               {query_start}{query_mid}
-               {query_end}
-            """)
+            {query_start}{query_mid}
+            {query_end}
+        """)
 
     return con
