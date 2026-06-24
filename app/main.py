@@ -3,8 +3,8 @@ from app.services.get_customers import get_customers
 from app.services.get_recommendations import get_recommendations
 from app.services.get_recommendations_batch import get_recommendations_batch
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
-from pydantic import BaseModel
+from fastapi import FastAPI, Request, Query
+from pydantic import BaseModel, Field
 from typing import List
 
 
@@ -36,7 +36,7 @@ class RecommendationResponse(BaseModel):
 # Тело запроса recommendations_batch
 class RecommendationBatchRequest(BaseModel):
     customer_ids: List[str]
-    k: int = 12
+    k: int = Field(default=12, ge=1, le=100)
 
 
 # ----------------------- Инициализация веб-приложения ----------------------- #
@@ -69,7 +69,7 @@ def customers(
 def recommendations(
         request: Request,
         customer_id: str, 
-        k: int = 12,
+        k: int = Query(default=12, ge=1, le=100),
     ) -> RecommendationResponse:
     
     con = request.app.state.con
