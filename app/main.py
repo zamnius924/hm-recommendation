@@ -1,10 +1,10 @@
+from app.schemas import RecommendationResponse, RecommendationBatchRequest
 from app.services.get_con import get_con
 from app.services.get_customers import get_customers
 from app.services.get_recommendations import get_recommendations
 from app.services.get_recommendations_batch import get_recommendations_batch
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Query
-from pydantic import BaseModel, Field
 from typing import List
 
 
@@ -18,25 +18,6 @@ async def lifespan(app: FastAPI):
 
     # Логика завершения
     app.state.con.close() # отключение БД
-
-
-# ----------------------------- Валидация данных ----------------------------- #
-# Ответ на запрос о рекомендациях
-class ArticleRecommendation(BaseModel):
-    rating: int
-    article_id: str
-    product_type_name: str
-    graphical_appearance_name: str
-    detail_desc: str
-
-class RecommendationResponse(BaseModel):
-    customer_id: str
-    recommendations: List[ArticleRecommendation]
-
-# Тело запроса recommendations_batch
-class RecommendationBatchRequest(BaseModel):
-    customer_ids: List[str]
-    k: int = Field(default=12, ge=1, le=100)
 
 
 # ----------------------- Инициализация веб-приложения ----------------------- #
