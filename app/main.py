@@ -1,6 +1,7 @@
 from app.get_con import get_con
-#from app.get_customers import get_customers
+from app.get_customers import get_customers
 from app.get_recommendations import get_recommendations
+from app.get_recommendations_batch import get_recommendations_batch
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
@@ -20,6 +21,7 @@ async def lifespan(app: FastAPI):
 
 
 # ----------------------------- Валидация данных ----------------------------- #
+# Ответ на запрос о рекомендациях
 class ArticleRecommendation(BaseModel):
     rating: int
     article_id: str
@@ -31,21 +33,35 @@ class RecommendationResponse(BaseModel):
     customer_id: str
     recommendations: List[ArticleRecommendation]
 
+# Тело запроса recommendations_batch
+class RecomendationBatchRequest(BaseModel):
+    customer_ids: List[str]
+    k: int
+
 
 # ----------------------- Инициализация веб-приложения ----------------------- #
 app = FastAPI(lifespan=lifespan)
 
 
 # ------------------------------- API endpoints ------------------------------ #
+# Корневой эндпоинт
 @app.get('/')
 def root():
     return {'status': 'ok'}
 
-#@app.get('/customers')
-#def customers(index: List[int]):
-#    return get_customers(index)
+# Список индексов покупателей на основе их порядковых номеров
+@app.get('/customers', response_model=List[str])
+def customers(
+        request: Request,
+        start: int = 1,
+        end: int = 10
+    ) -> List[str]:
+    
+    con = request.app.state.con
+    return get_customers(con, start, end)
 
-@app.get('/recommendations/{customer_id}')
+# Рекомендации для одного пользователя
+@app.get('/recommendations/{customer_id}', response_model=RecommendationResponse)
 def recommendations(
         request: Request,
         customer_id: str, 
@@ -53,6 +69,14 @@ def recommendations(
     ) -> RecommendationResponse:
     
     con = request.app.state.con
-    recs = get_recommendations(con, customer_id, k)
+    return get_recommendations(con, customer_id, k)
 
-    return recs
+# Рекомендации для списка пользователей
+@app.post('/recommendations_batch', response_model=List[RecommendationResponse])
+def recommendations_batch(
+        request: Request,
+        payload: RecomendationBatchRequest
+    ) -> List[RecommendationResponse]: 
+    
+    con = request.app.state.con
+    return get_recommendations_batch(con, payload.customer_ids, payload.k)
