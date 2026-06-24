@@ -34,13 +34,17 @@ class RecommendationResponse(BaseModel):
     recommendations: List[ArticleRecommendation]
 
 # Тело запроса recommendations_batch
-class RecomendationBatchRequest(BaseModel):
+class RecommendationBatchRequest(BaseModel):
     customer_ids: List[str]
-    k: int
+    k: int = 12
 
 
 # ----------------------- Инициализация веб-приложения ----------------------- #
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title='H&M Recommendation API',
+    version='1.0.0',
+    lifespan=lifespan
+)
 
 
 # ------------------------------- API endpoints ------------------------------ #
@@ -75,7 +79,7 @@ def recommendations(
 @app.post('/recommendations_batch', response_model=List[RecommendationResponse])
 def recommendations_batch(
         request: Request,
-        payload: RecomendationBatchRequest
+        payload: RecommendationBatchRequest
     ) -> List[RecommendationResponse]: 
     
     con = request.app.state.con
