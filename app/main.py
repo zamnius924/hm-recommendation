@@ -1,7 +1,7 @@
-from app.get_con import get_con
-from app.get_customers import get_customers
-from app.get_recommendations import get_recommendations
-from app.get_recommendations_batch import get_recommendations_batch
+from app.services.get_con import get_con
+from app.services.get_customers import get_customers
+from app.services.get_recommendations import get_recommendations
+from app.services.get_recommendations_batch import get_recommendations_batch
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
