@@ -7,6 +7,7 @@ from scripts.generate_als_candidates import generate_als_candidates
 from scripts.generate_features import generate_features
 from scripts.generate_scores import generate_scores
 from scripts.load_db import load_db
+from scripts.paths import DATA_PROCESSED_DIR, DATA_RECOMMENDATIONS_DIR, MODELS_DIR, MODELS_CONFIG_DIR
 
 # %% Development: Перезапуск 
 import importlib
@@ -27,16 +28,16 @@ from scripts.generate_scores import generate_scores
 
 # %% Импорт
 # Загрузка параметров: даты
-with open(file='data/processed/split_dates.json', mode='r') as file:
+with open(file=DATA_PROCESSED_DIR / 'split_dates.json', mode='r') as file:
     dates = json.load(file)
 
 # Загрузка параметров: калибровка ALS
-with open(file='models/config/als_best_params.json', mode='r') as file:
+with open(file=MODELS_CONFIG_DIR / 'als_best_params.json', mode='r') as file:
     als_best_params = json.load(file)
 
 # Загрузка модели
 model = CatBoostRanker()
-model.load_model('models/ltr_model.cbm')
+model.load_model(MODELS_DIR / 'ltr_model.cbm')
 
 # %% Подключение к БД
 con = load_db()
@@ -73,5 +74,5 @@ df_rec = generate_scores(con, model, 5000)
 con.close()
 
 # %% Сохранение рекомендаций
-df_rec.to_parquet('data/recommendations/df_rec.parquet',
+df_rec.to_parquet(DATA_RECOMMENDATIONS_DIR / 'df_rec.parquet',
                   engine='pyarrow', index=False)

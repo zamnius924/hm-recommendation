@@ -1,15 +1,11 @@
 # %%  Импорт библиотек
 import json
-import numpy as np
 import optuna
-import pandas as pd
 
-from implicit.als import AlternatingLeastSquares
-from implicit.evaluation import mean_average_precision_at_k
-from scipy.sparse import csr_matrix
 from scripts.tuning_objective_als import tuning_objective_als
 from scripts.build_mapping import build_mapping
 from scripts.load_db import load_db
+from scripts.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR
 from scripts.sparse_interaction_matrix import sparse_interaction_matrix
 from scripts.window_extraction import window_extraction
 
@@ -18,7 +14,7 @@ con = load_db()
 con.execute("SHOW TABLES").df()
 
 # Временное разделение на train-, valid- и test-выборки
-with open(file='data/processed/split_dates.json', mode='r') as file:
+with open(file=DATA_PROCESSED_DIR / 'split_dates.json', mode='r') as file:
     dates = json.load(file)
 
 # %% Выделение target- и feature-window на valid-выборке
@@ -70,7 +66,7 @@ print(f"Best MAP@{n_recommendation}: {study.best_value:.4f}")
 als_best_params = study.best_params
 als_best_params['K'] = n_recommendation
 
-with open(file='models/config/als_best_params.json', mode='w') as file:
+with open(file=MODELS_CONFIG_DIR / 'als_best_params.json', mode='w') as file:
     json.dump(als_best_params, file, indent=4)
 
 # %% Отключение от БД

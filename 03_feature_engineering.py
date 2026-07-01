@@ -1,12 +1,11 @@
 # %%  Импорт библиотек
-import datetime as dt
-import duckdb
 import json
 import pandas as pd
 
 from scripts.generate_als_candidates import generate_als_candidates
 from scripts.generate_features import generate_features
 from scripts.load_db import load_db
+from scripts.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR
 
 # %% Development: Перезапуск 
 import importlib
@@ -21,11 +20,11 @@ from scripts.generate_features import generate_features
 
 # %% Загрузка параметров
 # Временное разделение на train-, valid- и test-выборки
-with open(file='data/processed/split_dates.json', mode='r') as file:
+with open(file=DATA_PROCESSED_DIR / 'split_dates.json', mode='r') as file:
     dates = json.load(file)
 
 # Оптимальные параметры ALS
-with open('models/config/als_best_params.json', mode='r') as file:
+with open(file=MODELS_CONFIG_DIR / 'als_best_params.json', mode='r') as file:
     als_best_params = json.load(file)
 
 # %% Подключение к БД
@@ -37,19 +36,19 @@ als_candidates_valid = generate_als_candidates(con, dates['valid'], als_best_par
 als_candidates_test = generate_als_candidates(con, dates['test'], als_best_params)
 
 # %% Development: Сохранение кандидатов
-als_candidates_train.to_parquet('data/processed/als_candidates_train.parquet', 
+als_candidates_train.to_parquet(DATA_PROCESSED_DIR / 'als_candidates_train.parquet', 
                                 engine='pyarrow', index=False)
-als_candidates_valid.to_parquet('data/processed/als_candidates_valid.parquet', 
+als_candidates_valid.to_parquet(DATA_PROCESSED_DIR / 'als_candidates_valid.parquet', 
                                 engine='pyarrow', index=False)
-als_candidates_test.to_parquet('data/processed/als_candidates_test.parquet', 
+als_candidates_test.to_parquet(DATA_PROCESSED_DIR / 'als_candidates_test.parquet', 
                                engine='pyarrow', index=False)
 
 # %% Development: Загрузка кандидатов
-als_candidates_train = pd.read_parquet('data/processed/als_candidates_train.parquet', 
+als_candidates_train = pd.read_parquet(DATA_PROCESSED_DIR / 'als_candidates_train.parquet', 
                                        engine='pyarrow')
-als_candidates_valid = pd.read_parquet('data/processed/als_candidates_valid.parquet', 
+als_candidates_valid = pd.read_parquet(DATA_PROCESSED_DIR / 'als_candidates_valid.parquet', 
                                        engine='pyarrow')
-als_candidates_test = pd.read_parquet('data/processed/als_candidates_test.parquet', 
+als_candidates_test = pd.read_parquet(DATA_PROCESSED_DIR / 'als_candidates_test.parquet', 
                                       engine='pyarrow')
 
 # %% Создание фичей
@@ -61,9 +60,9 @@ df_test = generate_features(con, dates['test'], als_candidates_test)
 con.close()
 
 # %% Сохранение датасета
-df_train.to_parquet('data/processed/df_train.parquet', 
+df_train.to_parquet(DATA_PROCESSED_DIR / 'df_train.parquet', 
                     engine='pyarrow', index=False)
-df_valid.to_parquet('data/processed/df_valid.parquet', 
+df_valid.to_parquet(DATA_PROCESSED_DIR / 'df_valid.parquet', 
                     engine='pyarrow', index=False)
-df_test.to_parquet('data/processed/df_test.parquet', 
+df_test.to_parquet(DATA_PROCESSED_DIR / 'df_test.parquet', 
                    engine='pyarrow', index=False)

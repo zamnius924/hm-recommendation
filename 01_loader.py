@@ -1,10 +1,9 @@
 # %%  Импорт библиотек
 import datetime as dt
-import duckdb
 import json
-import pandas as pd
 
 from scripts.load_db import load_db
+from scripts.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR, MODELS_PROD_CONFIG_DIR
 
 # %% Подключение к БД и загрузка данных
 con = load_db()
@@ -66,16 +65,16 @@ dates = {
 dates
 
 # %% Сохранение граничиных дат
-with open(file='data/processed/split_dates.json', mode='w') as file:
+with open(file=DATA_PROCESSED_DIR / 'split_dates.json', mode='w') as file:
     json.dump(dates, file, indent=4, default=str)
 
 # %% Сохранение параметров окон
 # Конфигурационные файлы модели
-with open(file='models/config/window_config.json', mode='w') as file:
+with open(file=MODELS_CONFIG_DIR / 'window_config.json', mode='w') as file:
     json.dump(window_length, file, indent=4, default=str)
 
 # Конфигурационные файлы модели для airflow
-with open(file='models/production/config/window_config.json', mode='w') as file:
+with open(file=MODELS_PROD_CONFIG_DIR / 'window_config.json', mode='w') as file:
     json.dump(window_length, file, indent=4, default=str)
 
 # %% Отключение от БД

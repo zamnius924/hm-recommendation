@@ -3,12 +3,13 @@ import json
 import optuna
 import pandas as pd
 
-from scripts.tuning_objective_ltr import tuning_objective_ltr
 from scripts.generate_pool import generate_pool
+from scripts.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR
+from scripts.tuning_objective_ltr import tuning_objective_ltr
 
 # %% Импорт данных
-df_train = pd.read_parquet('data/processed/df_train.parquet', engine='pyarrow')
-df_valid = pd.read_parquet('data/processed/df_valid.parquet', engine='pyarrow')
+df_train = pd.read_parquet(DATA_PROCESSED_DIR / 'df_train.parquet', engine='pyarrow')
+df_valid = pd.read_parquet(DATA_PROCESSED_DIR / 'df_valid.parquet', engine='pyarrow')
 
 # %% Создание пулов
 pool_train = generate_pool(df_train)
@@ -49,5 +50,5 @@ ltr_best_params = {
     'fit': params['fit']
 }
 
-with open(file='models/config/ltr_best_params.json', mode='w') as file:
+with open(file=MODELS_CONFIG_DIR / 'ltr_best_params.json', mode='w') as file:
     json.dump(ltr_best_params, file, indent=4)
