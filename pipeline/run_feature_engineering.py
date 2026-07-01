@@ -1,3 +1,4 @@
+import argparse
 import json
 
 from scripts.generate_als_candidates import generate_als_candidates
@@ -5,7 +6,25 @@ from scripts.generate_features import generate_features
 from scripts.load_db import load_db
 from scripts.paths import DATA_PROD_DIR, MODELS_PROD_CONFIG_DIR
 
-def run_feature_engineering():
+def build_dataset(con, dates: dict, sample: str, als_best_params: dict):
+    
+    # Кандидаты ALS
+    als_candidates = generate_als_candidates(con, dates[sample], als_best_params)
+
+    # Создание фичей
+    df = generate_features(con, dates[sample], als_candidates)
+
+    return df
+
+
+def save_dataset(df, sample: str):
+    
+    # Сохранение датасета
+    df.to_parquet(DATA_PROD_DIR / f'df_{sample}.parquet', 
+                  engine='pyarrow', index=False)
+    
+
+def run_feature_engineering(mode: str):
 
     # ---------------------------- Загрузка параметров --------------------------- #
     # Границы окон
@@ -19,28 +38,43 @@ def run_feature_engineering():
     # Покдючение к БД
     con = load_db()
 
-    # ----------------------------- Обработка данных ----------------------------- #
-    # Кандидаты ALS
-    als_candidates_train = generate_als_candidates(con, dates['train'], als_best_params)
-    als_candidates_valid = generate_als_candidates(con, dates['valid'], als_best_params)
-    als_candidates_test = generate_als_candidates(con, dates['test'], als_best_params)
 
-    # Создание фичей
-    df_train = generate_features(con, dates['train'], als_candidates_train)
-    df_valid = generate_features(con, dates['valid'], als_candidates_valid)
-    df_test = generate_features(con, dates['test'], als_candidates_test)
+    # --------------------- Обработка и сохранение датасетов --------------------- #
+    if mode == 'production':
 
-    # -------------------------- Сохранение и отключение ------------------------- #
-    # Сохранение датасета
-    df_train.to_parquet(DATA_PROD_DIR / 'df_train.parquet', 
-                        engine='pyarrow', index=False)
-    df_valid.to_parquet(DATA_PROD_DIR / 'df_valid.parquet', 
-                    engine='pyarrow', index=False)
-    df_test.to_parquet(DATA_PROD_DIR / 'df_test.parquet', 
-                       engine='pyarrow', index=False)
+        # Создание датасетов
+        df_train = build_dataset(con, dates, 'train', als_best_params)
+        df_test = build_dataset(con, dates, 'test', als_best_params)
+        
+        # Сохранение датасетов
+        save_dataset(df_train, 'train')
+        save_dataset(df_test, 'test')
+
+    elif mode == 'calibration':
+
+        # Создание датасетов
+        df_train = build_dataset(con, dates, 'train', als_best_params)
+        df_valid = build_dataset(con, dates, 'valid', als_best_params)
+        df_test = build_dataset(con, dates, 'test', als_best_params)
+
+        # Сохранение датасетов
+        save_dataset(df_train, 'train')
+        save_dataset(df_valid, 'valid')
+        save_dataset(df_test, 'test')
+    
+    else:
+        
+        raise ValueError(f'Unknown mode: {mode}')
 
     # Отключение от БД
     con.close()
 
 if __name__ == '__main__':
-    run_feature_engineering()
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--mode', type=str, choices=['production', 'calibration'])
+
+    args = parser.parse_args()
+
+    run_feature_engineering(mode=args.mode)

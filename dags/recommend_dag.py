@@ -32,7 +32,7 @@ with DAG(
     # Таска 2: создание кандидатов ALS и фичей
     t2 = BashOperator(
         task_id='feature_engineering',
-        bash_command='python pipeline/run_feature_engineering.py'
+        bash_command='python pipeline/run_feature_engineering.py --mode production'
     )
 
     # Таска 3: обучение модели LTR
