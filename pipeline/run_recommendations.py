@@ -6,14 +6,14 @@ from scripts.generate_als_candidates import generate_als_candidates
 from scripts.generate_features import generate_features
 from scripts.generate_scores import generate_scores
 from scripts.load_db import load_db
+from scripts.load_window_config import load_window_config
 from scripts.paths import DATA_PROD_DIR, MODELS_PROD_DIR, MODELS_PROD_CONFIG_DIR
 
 def run_recommendations():
 
     # ------------------------------ Загрузка данных ----------------------------- #
-    # Границы окон
-    with open(file=DATA_PROD_DIR / 'split_dates.json', mode='r') as file:
-        dates = json.load(file)
+    # Длины окон для формирования таргета и фичей
+    window_length = load_window_config()
 
     # Оптимальные параметры ALS
     with open(file=MODELS_PROD_CONFIG_DIR / 'als_best_params.json', mode='r') as file:
@@ -33,14 +33,11 @@ def run_recommendations():
         SELECT MAX(t_dat)
         FROM transactions
     """).fetchone()[0]
-    
-    # Длина окна, на котором собираем историю
-    window_length = pd.to_timedelta(dates['window_length']['feature'])
 
     # Границы окна
     inference_dates = {
         'feature_window_end': cutoff_date,
-        'feature_window_start': cutoff_date - window_length
+        'feature_window_start': cutoff_date - window_length['feature']
     }
 
 

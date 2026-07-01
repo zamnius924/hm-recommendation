@@ -7,7 +7,7 @@ with DAG(
     # ------------------------------- Параметры DAG ------------------------------ #
     dag_id='recommend_dag', # название DAG
     description='Train recommendations model', # описание DAG
-    schedule_interval=timedelta(days=1), # как часто запускать DAG
+    schedule="@daily", # как часто запускать DAG
     start_date=datetime(2026, 1, 1), # дата начала DAG
     catchup=False, # запускать ли DAG за пропущенные интервалы
     
@@ -26,7 +26,7 @@ with DAG(
     # Таска 1: определение окон для тренировочной, валидационной и тестовой выборок
     t1 = BashOperator(
         task_id='load_db',
-        bash_command='python pipeline/run_loader.py'
+        bash_command='python pipeline/run_update_windows.py'
     )
 
     # Таска 2: создание кандидатов ALS и фичей

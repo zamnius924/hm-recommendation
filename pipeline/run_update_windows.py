@@ -2,14 +2,14 @@ import datetime as dt
 import json
 
 from scripts.load_db import load_db
+from scripts.load_window_config import load_window_config
 from scripts.paths import DATA_PROD_DIR, MODELS_PROD_CONFIG_DIR
 
-def run_loader():
+def run_update_windows():
 
     # ---------------------------- Загрузка параметров --------------------------- #
     # Длины окон для формирования таргета и фичей
-    with open(file=MODELS_PROD_CONFIG_DIR / 'window_config.json', mode='r') as file:
-        window_length = json.load(file)
+    window_length = load_window_config()
 
     # Подключение к БД и загрузка данных
     con = load_db()
@@ -68,4 +68,4 @@ def run_loader():
     con.close()
 
 if __name__ == '__main__':
-    run_loader()
+    run_update_windows()
