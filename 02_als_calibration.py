@@ -70,7 +70,7 @@ print(f"Best MAP@{n_recommendation}: {study.best_value:.4f}")
 als_best_params = study.best_params
 als_best_params['K'] = n_recommendation
 
-with open(file='models/als_best_params.json', mode='w') as file:
+with open(file='models/config/als_best_params.json', mode='w') as file:
     json.dump(als_best_params, file, indent=4)
 
 # %% Отключение от БД

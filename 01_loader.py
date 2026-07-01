@@ -22,46 +22,45 @@ df_dates
 
 # %% Определение границ тестовой, валидационной и тренировочной выборок
 # Параметры окон
-window_length_target = dt.timedelta(days=6)
-window_length_feature = dt.timedelta(weeks=8)
+window_length = {
+    'target': dt.timedelta(days=6), # Таргет: 1 неделя
+    'feature': dt.timedelta(weeks=8) # Фичи: 8 недель
+}
 
 # Окончания периодов
 max_date_train_target = df_dates.max_date[0]
 max_date_train_feature = max_date_train_target - \
-    (window_length_target + dt.timedelta(days=1))
+    (window_length['target'] + dt.timedelta(days=1))
 
 max_date_valid_target = max_date_train_feature
 max_date_valid_feature = max_date_valid_target - \
-    (window_length_target + dt.timedelta(days=1))
+    (window_length['target'] + dt.timedelta(days=1))
 
 max_date_test_target = max_date_valid_feature
 max_date_test_feature = max_date_test_target - \
-    (window_length_target + dt.timedelta(days=1))
+    (window_length['target'] + dt.timedelta(days=1))
 
 # Словарь с границами окон
 dates = {
     'train': {
         'target_window_end': max_date_train_target,
-        'target_window_start': max_date_train_target - window_length_target,
+        'target_window_start': max_date_train_target - window_length['target'],
         'feature_window_end': max_date_train_feature,
-        'feature_window_start': max_date_train_feature - window_length_feature
+        'feature_window_start': max_date_train_feature - window_length['feature']
     },
     'valid': {
         'target_window_end': max_date_valid_target,
-        'target_window_start': max_date_valid_target - window_length_target,
+        'target_window_start': max_date_valid_target - window_length['target']  ,
         'feature_window_end': max_date_valid_feature,
-        'feature_window_start': max_date_valid_feature - window_length_feature
+        'feature_window_start': max_date_valid_feature - window_length['feature']
     },
     'test': {
         'target_window_end': max_date_test_target,
-        'target_window_start': max_date_test_target - window_length_target,
+        'target_window_start': max_date_test_target - window_length['target'],
         'feature_window_end': max_date_test_feature,
-        'feature_window_start': max_date_test_feature - window_length_feature
+        'feature_window_start': max_date_test_feature - window_length['feature']
     },
-    'window_length': {
-        'target': window_length_target,
-        'feature': window_length_feature
-    }
+    'window_length': window_length
 }
 
 dates
@@ -69,6 +68,15 @@ dates
 # %% Сохранение граничиных дат
 with open(file='data/processed/split_dates.json', mode='w') as file:
     json.dump(dates, file, indent=4, default=str)
+
+# %% Сохранение параметров окон
+# Конфигурационные файлы модели
+with open(file='models/config/window_config.json', mode='w') as file:
+    json.dump(window_length, file, indent=4, default=str)
+
+# Конфигурационные файлы модели для airflow
+with open(file='models/production/config/window_config.json', mode='w') as file:
+    json.dump(window_length, file, indent=4, default=str)
 
 # %% Отключение от БД
 con.close()

@@ -31,7 +31,7 @@ with open(file='data/processed/split_dates.json', mode='r') as file:
     dates = json.load(file)
 
 # Загрузка параметров: калибровка ALS
-with open(file='models/als_best_params.json', mode='r') as file:
+with open(file='models/config/als_best_params.json', mode='r') as file:
     als_best_params = json.load(file)
 
 # Загрузка модели

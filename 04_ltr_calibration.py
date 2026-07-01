@@ -49,5 +49,5 @@ ltr_best_params = {
     'fit': params['fit']
 }
 
-with open(file='models/ltr_best_params.json', mode='w') as file:
+with open(file='models/config/ltr_best_params.json', mode='w') as file:
     json.dump(ltr_best_params, file, indent=4)

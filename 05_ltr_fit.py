@@ -12,7 +12,7 @@ df_train = pd.read_parquet('data/processed/df_train.parquet', engine='pyarrow')
 df_test = pd.read_parquet('data/processed/df_test.parquet', engine='pyarrow')
 
 # Загрузка параметров
-with open(file='models/ltr_best_params.json', mode='r') as file:
+with open(file='models/config/ltr_best_params.json', mode='r') as file:
     ltr_best_params = json.load(file)
 
 # %% Создание пулов

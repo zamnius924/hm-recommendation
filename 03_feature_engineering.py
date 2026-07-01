@@ -25,7 +25,7 @@ with open(file='data/processed/split_dates.json', mode='r') as file:
     dates = json.load(file)
 
 # Оптимальные параметры ALS
-with open('models/als_best_params.json', mode='r') as file:
+with open('models/config/als_best_params.json', mode='r') as file:
     als_best_params = json.load(file)
 
 # %% Подключение к БД
