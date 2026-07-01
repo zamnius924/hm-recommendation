@@ -40,7 +40,7 @@ def run_feature_engineering(mode: str):
 
 
     # --------------------- Обработка и сохранение датасетов --------------------- #
-    if mode == 'production':
+    if mode == 'production': # Обучение модели на новых данных (без калибровки гиперпараметров)
 
         # Создание датасетов
         df_train = build_dataset(con, dates, 'train', als_best_params)
@@ -50,7 +50,7 @@ def run_feature_engineering(mode: str):
         save_dataset(df_train, 'train')
         save_dataset(df_test, 'test')
 
-    elif mode == 'calibration':
+    elif mode == 'calibration': # Калибровка гиперпараметров
 
         # Создание датасетов
         df_train = build_dataset(con, dates, 'train', als_best_params)
@@ -63,18 +63,23 @@ def run_feature_engineering(mode: str):
         save_dataset(df_test, 'test')
     
     else:
-        
+
         raise ValueError(f'Unknown mode: {mode}')
 
     # Отключение от БД
     con.close()
 
+
 if __name__ == '__main__':
 
+    # Инициализация парсера аргументов командной строки
     parser = argparse.ArgumentParser()
 
+    # Описание переменной mode
     parser.add_argument('--mode', type=str, choices=['production', 'calibration'])
 
+    # Сохранение аргументов командной строки
     args = parser.parse_args()
 
+    # Вызов функции обработки данных с аргументами командной строки
     run_feature_engineering(mode=args.mode)

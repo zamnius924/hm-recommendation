@@ -36,11 +36,12 @@ def run_ltr_fit():
     score = map_at_k(df_test, model.predict(pool_test))
 
     if score < 0.03:
-        raise RuntimeError("Model quality degraded")
+        raise RuntimeError('Model quality degraded')
     
 
     # -------------------------------- Сохранение -------------------------------- #
     model.save_model(MODELS_PROD_DIR / 'ltr_model.cbm')
+
 
 if __name__ == '__main__':
     run_ltr_fit()

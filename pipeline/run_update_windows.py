@@ -67,5 +67,6 @@ def run_update_windows():
     # Отключение от БД
     con.close()
 
+
 if __name__ == '__main__':
     run_update_windows()
