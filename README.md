@@ -1,5 +1,15 @@
 # H&M Personalized Fashion Recommendations
 
+![Python](https://img.shields.io/badge/Python-3.13-blue)
+![Airflow](https://img.shields.io/badge/Airflow-3.2-red)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.138-green)
+![CatBoost](https://img.shields.io/badge/CatBoost-LTR-orange)
+![Implicit ALS](https://img.shields.io/badge/Implicit-ALS-lightgrey)
+![Optuna](https://img.shields.io/badge/Optuna-HPO-purple)
+![DuckDB](https://img.shields.io/badge/DuckDB-SQL-yellow)
+
+Production-ready recommendation system combining collaborative filtering, learning-to-rank, Airflow orchestration, and FastAPI serving.
+
 A two‑stage recommendation system that combines **Matrix Factorization (ALS)** with a **Learning‑to‑Rank (LTR)** model (CatBoost) to provide personalised fashion recommendations for H&M customers.
 
 The pipeline is built around a sliding‑window temporal split and produces a ranked list of up to 100 articles per customer, served via a **FastAPI** web service.
@@ -13,6 +23,7 @@ The pipeline is built around a sliding‑window temporal split and produces a ra
 - Hyperparameter tuning with **Optuna** (for both ALS and LTR)  
 - REST API (FastAPI) serving recommendations with article metadata  
 - In‑memory DuckDB for fast SQL feature engineering
+- **Automated retraining pipeline** with Apache Airflow
 
 ## 🧠 Architecture Overview
 
@@ -32,15 +43,26 @@ The pipeline is built around a sliding‑window temporal split and produces a ra
 ├── 05_ltr_fit.py               # train final model & evaluate
 ├── 06_recommendations.py       # generate final recommendations for API
 │
+├── dags/                        # Airflow DAGs
+│   ├── calibrate_dag.py         # hyperparameter calibration
+│   └── recommend_dag.py         # daily retraining & inference
+│
+├── pipeline/                   # production‑ready entry points (used by Airflow)
+│   ├── run_update_windows.py
+│   ├── run_als_calibration.py
+│   ├── run_feature_engineering.py
+│   ├── run_ltr_calibration.py
+│   ├── run_ltr_fit.py
+│   └── run_recommendations.py
+│
 ├── requirements.txt
 ├── README.md
 │
-├── app/
-│   ├── __init__.py
-│   ├── main.py                 # FastAPI entry point
-│   ├── schemas.py              # Pydantic models
+├── app/                        # FastAPI service
+│   ├── main.py
+│   ├── schemas.py
 │   └── services/
-│       ├── get_con.py          # DuckDB connection
+│       ├── get_con.py
 │       ├── get_customers.py
 │       ├── get_recommendations.py
 │       └── get_recommendations_batch.py
@@ -50,16 +72,25 @@ The pipeline is built around a sliding‑window temporal split and produces a ra
 │   │   ├── transactions_train.parquet
 │   │   ├── articles.parquet
 │   │   └── customers.parquet
-│   ├── processed/              # intermediate & final datasets
+│   ├── processed/              # intermediate datasets (local development)
+│   ├── production/             # datasets used for model retraining (Airflow)
 │   └── recommendations/        # pre‑computed recommendations for API
 │
-├── models/                     # saved models & params
-│   ├── als_best_params.json
-│   ├── ltr_best_params.json
-│   ├── ltr_model.cbm
-│   └── ltr_model_info.json
+├── models/
+│   ├── config/                 # hyperparameter configs (dev)
+│   │   ├── als_best_params.json
+│   │   ├── ltr_best_params.json
+│   │   └── window_config.json
+│   └── production/             # production models & configs
+│       ├── config/
+│       │   ├── als_best_params.json
+│       │   ├── ltr_best_params.json
+│       │   └── window_config.json
+│       ├── ltr_model.cbm
+│       └── ltr_model_info.json
 │
 └── scripts/                    # reusable modules
+    ├── __init__.py
     ├── ap_at_k.py
     ├── build_mapping.py
     ├── generate_als_candidates.py
@@ -67,7 +98,9 @@ The pipeline is built around a sliding‑window temporal split and produces a ra
     ├── generate_pool.py
     ├── generate_scores.py
     ├── load_db.py
+    ├── load_window_config.py
     ├── map_at_k.py
+    ├── paths.py
     ├── sparse_interaction_matrix.py
     ├── tuning_objective_als.py
     ├── tuning_objective_ltr.py
@@ -116,7 +149,26 @@ python 06_recommendations.py     # create recommendations for API
 
 All models and parameters will be saved in the `models/` folder, and the final recommendations table will be stored as `data/recommendations/df_rec.parquet`.
 
-### 5. Start the API server
+### 5. Start Airflow (optional)
+
+The project includes two production Airflow DAGs for automated retraining.
+
+Run Airflow in project-local mode:
+```bash
+export AIRFLOW_HOME=$(pwd)/.airflow
+export AIRFLOW__CORE__DAGS_FOLDER=$(pwd)/dags
+airflow standalone
+```
+Then open:
+```
+http://localhost:8080
+```
+The generated admin password will be printed during the first launch or stored in
+```
+.airflow/simple_auth_manager_passwords.json.generated
+```
+
+### 6. Start the API server
 
 ```bash
 uvicorn app.main:app --reload
@@ -200,6 +252,44 @@ A rich set of features is built for each (customer, article) candidate:
 
 All feature engineering is performed using __DuckDB__ for speed and scalability.
 
+## 🔄 Automation with Airflow
+
+The production pipeline is fully automated using **Apache Airflow**, with two separate DAGs for calibration and daily retraining.
+
+### Calibration DAG (`calibrate_dag.py`)
+
+Runs on a **weekly** schedule to re‑tune hyperparameters as new data arrives:
+
+> update_windows → calibrate_als → feature_engineering → calibrate_ltr
+
+| Task | Description |
+|------|-------------|
+| `update_windows` | Recalculates train/validation/test date windows based on the latest data |
+| `calibrate_als` | Tunes ALS hyperparameters using Optuna on the validation set |
+| `feature_engineering` | Generates ALS candidates + features for train and validation sets |
+| `calibrate_ltr` | Tunes CatBoost hyperparameters using Optuna |
+
+### Recommendation DAG (`recommend_dag.py`)
+
+Runs on a **daily** schedule to retrain the model and generate fresh recommendations:
+
+> update_windows → feature_engineering → fit_ltr → generate_recommendations
+
+
+| Task | Description |
+|------|-------------|
+| `update_windows` | Recalculates train/test date windows based on the latest data |
+| `feature_engineering` | Generates ALS candidates + features for train and test sets (production mode) |
+| `fit_ltr` | Trains the final CatBoost model and validates quality (fails if MAP@12 < 0.03) |
+| `generate_recommendations` | Produces recommendations and saves them for the API |
+
+### Production vs Development Separation
+
+- **Development** (`models/config/`, `data/processed/`): Local experimentation and one‑time runs  
+- **Production** (`models/production/`, `data/production/`): Airflow‑managed retraining with separate configs and datasets
+
+This ensures that the automated pipeline doesn't interfere with ongoing experimentation.
+
 ## 📦 Dependencies
 
 - Python ≥ 3.9
@@ -215,6 +305,8 @@ All feature engineering is performed using __DuckDB__ for speed and scalability.
 - `optuna` (hyperparameter optimisation)
 
 - `fastapi`, `uvicorn` (API serving)
+
+- `apache-airflow` (orchestration)
 
 Full list in `requirements.txt`.
 
