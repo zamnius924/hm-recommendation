@@ -6,6 +6,7 @@ from scripts.generate_features import generate_features
 from scripts.load_db import load_db
 from scripts.paths import DATA_PROD_DIR, MODELS_PROD_CONFIG_DIR
 
+
 def build_dataset(con, dates: dict, sample: str, als_best_params: dict):
     
     # Кандидаты ALS
@@ -55,12 +56,10 @@ def run_feature_engineering(mode: str):
         # Создание датасетов
         df_train = build_dataset(con, dates, 'train', als_best_params)
         df_valid = build_dataset(con, dates, 'valid', als_best_params)
-        df_test = build_dataset(con, dates, 'test', als_best_params)
 
         # Сохранение датасетов
         save_dataset(df_train, 'train')
         save_dataset(df_valid, 'valid')
-        save_dataset(df_test, 'test')
     
     else:
 
