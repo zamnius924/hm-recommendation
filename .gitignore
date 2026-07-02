@@ -4,6 +4,7 @@ eda.py
 __pycache__
 .DS_Store
 \articles
+\.airflow
 \.tmp
 \.venv
 \catboost_info
