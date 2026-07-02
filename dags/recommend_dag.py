@@ -25,7 +25,7 @@ with DAG(
     # ----------------------------------- Таски ---------------------------------- #
     # Таска 1: определение окон для тренировочной, валидационной и тестовой выборок
     t1 = BashOperator(
-        task_id='load_db',
+        task_id='update_windows',
         bash_command='python pipeline/run_update_windows.py'
     )
 
