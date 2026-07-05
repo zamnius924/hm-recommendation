@@ -1,8 +1,12 @@
-def generate_features_customer(con, split_dates: dict):
+def generate_features_customer(
+        con, 
+        split_dates: dict
+    ):
 
     # Статистики по покупателю
     con.execute(f"""
         CREATE OR REPLACE TABLE customer_features AS
+                
         SELECT
             t.customer_id,
             COUNT(*) AS num_purchases,

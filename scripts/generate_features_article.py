@@ -1,4 +1,7 @@
-def generate_features_article(con, split_dates: dict):
+def generate_features_article(
+        con, 
+        split_dates: dict
+    ):
 
     # Сатистики по товару
     con.execute(f"""
