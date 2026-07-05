@@ -3,6 +3,7 @@ import pandas as pd
 
 from scripts.generate_features_article import generate_features_article
 from scripts.generate_features_customer import generate_features_customer
+from scripts.row_counts import row_counts
 
 # Конфигурации логгера
 logging.basicConfig(
@@ -20,17 +21,7 @@ def generate_features(
         target: bool = True,
         return_con: bool = False
     ):
-
-    # Счетчик строк в таблице
-    def row_counts(table: str):
-
-        n_rows = con.execute(f"""
-            SELECT COUNT(*)
-            FROM {table}
-        """).fetchone()[0]
-
-        logger.info(f'{table}: %s rows', f'{n_rows:,}')
-
+    
     logger.info("=" * 80)
     logger.info("Starting feature generation")
     logger.info("=" * 80)
@@ -50,7 +41,7 @@ def generate_features(
     con.unregister("als_candidates_df")
 
     # Размер таблицы
-    row_counts('als_candidates')
+    row_counts(con, logger, 'als_candidates')
 
 
     # ----------------------------- Фичи: покупатель ----------------------------- #
@@ -59,7 +50,7 @@ def generate_features(
     generate_features_customer(con, split_dates)
 
     # Размер таблицы
-    row_counts('customer_features')
+    row_counts(con, logger, 'customer_features')
 
 
     # -------------------------------- Фичи: товар ------------------------------- #
@@ -68,7 +59,7 @@ def generate_features(
     generate_features_article(con, split_dates)
 
     # Размер таблицы
-    row_counts('article_features')
+    row_counts(con, logger, 'article_features')
 
 
     # ------------------------- Фичи: покупатель-продукт ------------------------- #
@@ -207,7 +198,7 @@ def generate_features(
     """)
 
     # Размер таблицы
-    row_counts('als_candidates')
+    row_counts(con, logger, 'als_candidates')
 
 
     # ------------- Объединение всех фичей + создание дополнительных ------------- #
@@ -238,7 +229,7 @@ def generate_features(
     """)
 
     # Размер таблицы
-    row_counts('als_candidates')
+    row_counts(con, logger, 'als_candidates')
 
 
     # ---------------------------------- Таргет ---------------------------------- #
