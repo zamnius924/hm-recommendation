@@ -1,18 +1,9 @@
-import logging
 import pandas as pd
 
+from scripts.build_logger import build_logger
 from scripts.generate_features_article import generate_features_article
 from scripts.generate_features_customer import generate_features_customer
 from scripts.row_counts import row_counts
-
-# Конфигурации логгера
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s | %(levelname)s | %(message)s'
-)
-
-# Объявление логгера
-logger = logging.getLogger(__name__)
 
 def generate_features(
         con, 
@@ -21,7 +12,10 @@ def generate_features(
         target: bool = True,
         return_con: bool = False
     ):
-    
+
+    # Инициализация логгера
+    logger = build_logger()
+
     logger.info("=" * 80)
     logger.info("Starting feature generation")
     logger.info("=" * 80)
