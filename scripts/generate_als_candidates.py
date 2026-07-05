@@ -20,7 +20,7 @@ def generate_als_candidates(
     # Создание мэппинга для feature-window
     mapping = build_mapping(df_feature)
 
-    # Создание матрицы взимодействия для feature-window
+    # Создание матрицы взаимодействия для feature-window
     feature_interaction_matrix = sparse_interaction_matrix(
         df_feature,
         mapping['customer_id2index'],
