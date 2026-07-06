@@ -7,57 +7,6 @@ from scripts.class_tt_data import TwoTowerData, PairData, \
     ArticleData, CustomerData, Mapping
 from sklearn.preprocessing import LabelEncoder
 
-def test(logger: logging.Logger, df: list, col: str):
-    """
-    Тест: сортировка индексов в df_* корректная
-    """
-    
-    ok = df[col].is_monotonic_increasing
-    
-    if ok:
-        logger.info(f'Test passed: {col} are sorted correctly')
-    else:
-        logger.info(f'Test failed: {col} are sorted incorrectly')
-
-
-def df_to_data(df: pd.DataFrame):
-    """
-    Форматирование данных:
-        - разделение признаков на числовые и категориальные
-        - label-encoding для категориальных признаков
-    """
-
-    # Данные
-    data_numeric = df.select_dtypes(include=['int', 'float'])
-    data_categorical = df.select_dtypes(exclude=['int', 'float'])
-    
-    # Названия столбцов
-    numeric_columns = data_numeric.columns
-
-    categorical_columns = {}
-    for col in data_categorical:
-        
-        # Инициализация энкодера
-        le = LabelEncoder()
-        
-        # Применение энкодера
-        data_categorical[col] = le.fit_transform(data_categorical[col])
-
-        # Сохранение энкодера
-        categorical_columns[col] = le
-
-    # Конвертация данных в массивы
-    numeric = data_numeric.to_numpy(dtype=np.float32)
-    categorical = data_categorical.to_numpy(dtype=np.int64)
-
-    return {
-        'numeric': numeric,
-        'categorical': categorical,
-        'numeric_columns': numeric_columns,
-        'categorical_columns': categorical_columns,
-    }
-
-
 def generate_dataset(
         df_customer: pd.DataFrame,
         df_article: pd.DataFrame,
@@ -131,3 +80,59 @@ def generate_dataset(
 
     return tt_data
     
+
+# ---------------------------------------------------------------------------- #
+#                            Вспомогательные функции                           #
+# ---------------------------------------------------------------------------- #
+def df_to_data(df: pd.DataFrame):
+    """
+    Форматирование данных:
+        - разделение признаков на числовые и категориальные
+        - label-encoding для категориальных признаков
+    """
+
+    # Данные
+    data_numeric = df.select_dtypes(include=['int', 'float'])
+    data_categorical = df.select_dtypes(exclude=['int', 'float'])
+    
+    # Названия столбцов
+    numeric_columns = data_numeric.columns
+
+    categorical_columns = {}
+    for col in data_categorical:
+        
+        # Инициализация энкодера
+        le = LabelEncoder()
+        
+        # Применение энкодера
+        data_categorical[col] = le.fit_transform(data_categorical[col])
+
+        # Сохранение энкодера
+        categorical_columns[col] = le
+
+    # Конвертация данных в массивы
+    numeric = data_numeric.to_numpy(dtype=np.float32)
+    categorical = data_categorical.to_numpy(dtype=np.int64)
+
+    return {
+        'numeric': numeric,
+        'categorical': categorical,
+        'numeric_columns': numeric_columns,
+        'categorical_columns': categorical_columns,
+    }
+
+
+# ---------------------------------------------------------------------------- #
+#                                     Тесты                                    #
+# ---------------------------------------------------------------------------- #
+def test(logger: logging.Logger, df: list, col: str):
+    """
+    Тест: сортировка индексов в df_* корректная
+    """
+    
+    ok = df[col].is_monotonic_increasing
+    
+    if ok:
+        logger.info(f'Test passed: {col} are sorted correctly')
+    else:
+        logger.info(f'Test failed: {col} are sorted incorrectly')

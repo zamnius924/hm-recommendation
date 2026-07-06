@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 
 from scripts.build_logger import build_logger
@@ -45,41 +46,72 @@ def generate_tt_data(
         """).df()
 
         # Тест 1: в df_pairs и df_customer одинаковые покупатели
-        unique_customers_1 = set(df_customer.customer_id)
-        unique_customers_2 = set(df_pairs.customer_id)
-
-        if unique_customers_1 == unique_customers_2:
-            logger.info(
-                'Test 1/3 passed: customers in pairs and customer_features match '
-                f'({len(unique_customers_1)})'
-            )
-        else:
-            logger.warning(
-                'Test 1/3 failed: customers in pairs and customer_features differ '
-                f'({len(unique_customers_2)} vs {len(unique_customers_1)})'
-            )
+        test_object_match(
+            logger, 
+            df_customer['customer_id'], 
+            df_pairs['customer_id'], 
+            type='customer', 
+            num=1)
 
         # Тест 2: в df_pairs и df_article одинаковые товары
-        unique_articles_1 = set(df_article.article_id)
-        unique_articles_2 = set(df_pairs.article_id)
-
-        if unique_articles_1 == unique_articles_2:
-            logger.info(
-                'Test 2/3 passed: articles in pairs and article_features match '
-                f'({len(unique_articles_1)})'
-            )
-        else:
-            logger.warning(
-                'Test 2/3 failed: articles in pairs and article_features differ '
-                f'({len(unique_articles_2)} vs {len(unique_articles_1)})'
-            )
+        test_object_match(
+            logger, 
+            df_article['article_id'], 
+            df_pairs['article_id'], 
+            type='article', 
+            num=2)
 
         # Тест 3: в парах нет дубликатов
-        duplicates = df_pairs.duplicated().sum()
-
-        if duplicates == 0:
-            logger.info('Test 3/3 passed: pairs contain no duplicates')
-        else:
-            logger.warning(f'Test 3/3 failed: {duplicates} duplicate pairs found')
+        test_duplicates(logger, df_pairs, 3)
 
         return df_customer, df_article, df_pairs
+
+
+# ---------------------------------------------------------------------------- #
+#                                     Тесты                                    #
+# ---------------------------------------------------------------------------- #
+def test_object_match(
+        logger: logging.Logger, 
+        object_id_features: pd.Series, 
+        object_id_pairs: pd.DataFrame,
+        type: str,
+        num: int,
+        total: int = 3
+    ):
+    """
+    Тест: одинаковые объекты в df_* и df_pairs
+    """
+    
+    # Уникальные объекты
+    unique_el_features = set(object_id_features)
+    unique_el_pairs = set(object_id_pairs)
+    
+    if unique_el_features == unique_el_pairs:
+        logger.info(
+            f'Test {num}/{total} passed: ID in pairs and {type}_features match '
+            f'({len(unique_el_features)})'
+        )
+    else:
+        logger.warning(
+            f'Test {num}/{total} failed: ID in pairs and {type}_features differ '
+            f'({len(unique_el_pairs)} vs {len(unique_el_features)})'
+        )
+
+
+def test_duplicates(
+        logger: logging.Logger, 
+        df_pairs: pd.DataFrame,
+        num: int,
+        total: int = 3
+    ):
+    """
+    Тест: только уникальные пары
+    """
+
+    # Поиск дубликатов пар
+    duplicates = df_pairs.duplicated().sum()
+
+    if duplicates == 0:
+        logger.info(f'Test {num}/{total} passed: pairs contain no duplicates')
+    else:
+        logger.warning(f'Test {num}/{total} failed: {duplicates} duplicate pairs found')
