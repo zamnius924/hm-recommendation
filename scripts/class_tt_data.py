@@ -1,8 +1,13 @@
 import numpy as np
+import torch
 
 from dataclasses import dataclass
 from sklearn.preprocessing import LabelEncoder
+from torch.utils.data import Dataset
 
+# ---------------------------------------------------------------------------- #
+#                            Вспомогательные классы                            #
+# ---------------------------------------------------------------------------- #
 @dataclass(frozen=True)
 class Mapping:
     customer_id2index: dict
@@ -39,3 +44,49 @@ class TwoTowerData:
     articles: ArticleData
     pairs: PairData
     mapping: Mapping
+
+
+# ---------------------------------------------------------------------------- #
+#                              Датасет для PyTorch                             #
+# ---------------------------------------------------------------------------- #
+class TwoTowerDataset(Dataset):
+
+    # ------------------------------- Инициализация ------------------------------ #
+    def __init__(self, tt_data: TwoTowerData):
+        # Покупатели
+        self.customer_num = tt_data.customers.numeric
+        self.customer_cat = tt_data.customers.categorical
+
+        # Товары
+        self.article_num = tt_data.articles.numeric
+        self.article_cat = tt_data.articles.categorical
+
+        # Пары
+        self.pair_customer_id = tt_data.pairs.customer_index
+        self.pair_article_id = tt_data.pairs.article_index
+
+    # -------------------------- Магический метод: длина ------------------------- #
+    def __len__(self):
+        return len(self.pair_customer_id)
+    
+    # ------------------ Магический метод: обращение по индексу ------------------ #
+    def __getitem__(self, index):
+
+        # Выделение индексов покупателя и товары из пары
+        index_customer = self.pair_customer_id[index] - 1
+        index_article = self.pair_article_id[index] - 1
+
+        # Тензоры с данными
+        customer_num = torch.tensor(self.customer_num[index_customer])
+        customer_cat = torch.tensor(self.customer_cat[index_customer])
+        article_num = torch.tensor(self.article_num[index_article])
+        article_cat = torch.tensor(self.article_cat[index_article])
+
+        return {
+            'customer_num': customer_num,
+            'customer_cat': customer_cat,
+            
+            'article_num': article_num,
+            'article_cat': article_cat
+        }
+    
