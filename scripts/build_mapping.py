@@ -2,9 +2,22 @@ import pandas as pd
 
 def build_mapping(*dfs):
 
+    # Все товары и покупатели
+    customer_series = []
+    article_series = []
+
+    for df in dfs:
+        # Добавляем покупателей, если они есть
+        if 'customer_id' in df.columns:
+            customer_series.append(df['customer_id'])
+        
+        # Добавляем товары, если они есть
+        if 'article_id' in df.columns:
+            article_series.append(df['article_id'])
+
     # Все уникальные покупатели и товары
-    all_customers = pd.concat([df.customer_id for df in dfs]).unique()
-    all_articles = pd.concat([df.article_id for df in dfs]).unique()
+    all_customers = pd.concat(customer_series).unique()
+    all_articles = pd.concat(article_series).unique()
 
     # Словари для отображения индетификаторов в индексы
     customer_id2index = {
