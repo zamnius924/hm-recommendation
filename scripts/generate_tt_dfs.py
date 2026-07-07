@@ -7,7 +7,7 @@ from scripts.generate_features_customer import generate_features_customer
 from scripts.generate_pairs import generate_pairs
 from scripts.row_counts import row_counts
 
-def generate_tt_data(
+def generate_tt_dfs(
         con, 
         split_dates: dict,
         return_df: bool = False
