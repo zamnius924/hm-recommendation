@@ -61,13 +61,13 @@ class Tower(nn.Module):
         # Батч-нормализация числовых признаков
         x_num = self.batch_norm(x_num)
 
+        # Обработка категориальных признаков
         if self.use_emb:
             # Эмбеддинг категориальных признаков
             z_cat = torch.cat(
                 [emb(x_cat[:,i]) for i, emb in enumerate(self.emb)],
                 dim=1
             )
-
             # Объединение числовых признаков и эмбеддингов
             x = torch.cat([x_num, z_cat], dim=1)
         else:
