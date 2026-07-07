@@ -25,6 +25,7 @@ class Tower(nn.Module):
         super().__init__()
 
         # Вспомогательные параметры
+        self.use_emb = len(cat_sizes) > 0 # наличие категориальных признаков
         self.cat_dim = len(cat_sizes) # кол-во категориальных признаков
 
         # Полносвязные слои
@@ -36,13 +37,16 @@ class Tower(nn.Module):
                                   out_features=num_hidden_dim)
         
         # Слои-эмбединги
-        self.emb = nn.ModuleList([
-            nn.Embedding(
-                num_embeddings=n_classes, 
-                embedding_dim=embedding_dim
-            )
-            for embedding_dim, n_classes in zip(emb_dims, cat_sizes)
-        ])
+        if self.use_emb:
+            self.emb = nn.ModuleList([
+                nn.Embedding(
+                    num_embeddings=n_classes, 
+                    embedding_dim=embedding_dim
+                )
+                for embedding_dim, n_classes in zip(emb_dims, cat_sizes)
+            ])
+        else:
+            self.emb = None
 
         # Батч-нормализация
         self.batch_norm = nn.BatchNorm1d(num_features=num_input_dim)
@@ -54,17 +58,20 @@ class Tower(nn.Module):
     # ----------------------------- Архитектура сети ----------------------------- #
     def forward(self, x_num, x_cat):
 
-        # Эмбеддинг категориальных признаков
-        z_cat = torch.cat(
-            [emb(x_cat[:,i]) for i, emb in enumerate(self.emb)],
-            dim=1
-        )
-
         # Батч-нормализация числовых признаков
         x_num = self.batch_norm(x_num)
 
-        # Объединение числовых признаков и эмбеддингов
-        x = torch.cat([x_num, z_cat], dim=1)
+        if self.use_emb:
+            # Эмбеддинг категориальных признаков
+            z_cat = torch.cat(
+                [emb(x_cat[:,i]) for i, emb in enumerate(self.emb)],
+                dim=1
+            )
+
+            # Объединение числовых признаков и эмбеддингов
+            x = torch.cat([x_num, z_cat], dim=1)
+        else:
+            x = x_num
 
         # Подача данных в MLP
         z = self.linear_1(x)
