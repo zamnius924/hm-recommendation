@@ -16,7 +16,8 @@ class Mapping:
     article_index2id: dict
 
 @dataclass
-class CustomerData:
+class FeatureData:
+    # -------------- Поля -------------- #
     # Данные
     numeric: np.ndarray
     categorical: np.ndarray
@@ -24,14 +25,17 @@ class CustomerData:
     numeric_columns: list[str]
     categorical_columns: dict[str: LabelEncoder]
 
-@dataclass
-class ArticleData:
-    # Данные
-    numeric: np.ndarray
-    categorical: np.ndarray
-    # Названия столбцов
-    numeric_columns: list[str]
-    categorical_columns: dict[str: LabelEncoder]
+    # ------------- Методы ------------- #
+    # Кол-во числовых признаков
+    def num_dim(self): 
+        return len(self.numeric_columns)
+    
+    # Кол-во категорий в каждой категориальной переменной
+    def cat_sizes(self):
+        return [
+            x['n_classes'] 
+            for x in self.categorical_columns.values()
+        ]
 
 @dataclass
 class PairData:
@@ -39,11 +43,18 @@ class PairData:
     article_index: np.ndarray
 
 @dataclass
-class TwoTowerData:
-    customers: CustomerData
-    articles: ArticleData
+class AggregateData:
+    customers: FeatureData
+    articles: FeatureData
     pairs: PairData
     mapping: Mapping
+
+class TowerInfo:
+    def __init__(self, df_aggr: AggregateData):
+        self.customer_num_dim = df_aggr.customers.num_dim()
+        self.article_num_dim = df_aggr.articles.num_dim()
+        self.customer_cat_sizes = df_aggr.customers.cat_sizes()
+        self.article_cat_sizes = df_aggr.articles.cat_sizes()
 
 
 # ---------------------------------------------------------------------------- #
@@ -52,28 +63,28 @@ class TwoTowerData:
 class TwoTowerDataset(Dataset):
 
     # ------------------------------- Инициализация ------------------------------ #
-    def __init__(self, tt_data: TwoTowerData):
+    def __init__(self, tt_data: AggregateData):
         # 1) Покупатели
         # Фичи
         self.customer_num = torch.from_numpy(tt_data.customers.numeric)
         self.customer_cat = torch.from_numpy(tt_data.customers.categorical)
         # Размерности
-        self.customer_num_dim = len(tt_data.customers.numeric_columns)
-        self.customer_cat_sizes = [
-            x['n_classes'] 
-            for x in tt_data.customers.categorical_columns.values()
-        ]
+        #self.customer_num_dim = len(tt_data.customers.numeric_columns)
+        #self.customer_cat_sizes = [
+        #    x['n_classes'] 
+        #    for x in tt_data.customers.categorical_columns.values()
+        #]
 
         # 2) Товары
         # Фичи
         self.article_num = torch.from_numpy(tt_data.articles.numeric)
         self.article_cat = torch.from_numpy(tt_data.articles.categorical)
         # Размерности
-        self.article_num_dim = len(tt_data.articles.numeric_columns)
-        self.article_cat_sizes = [
-            x['n_classes'] 
-            for x in tt_data.articles.categorical_columns.values()
-        ]
+        #self.article_num_dim = len(tt_data.articles.numeric_columns)
+        #self.article_cat_sizes = [
+        #    x['n_classes'] 
+        #    for x in tt_data.articles.categorical_columns.values()
+        #]
 
         # 3) Пары
         self.pair_customer_id = torch.from_numpy(tt_data.pairs.customer_index)
