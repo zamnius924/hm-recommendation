@@ -53,15 +53,29 @@ class TwoTowerDataset(Dataset):
 
     # ------------------------------- Инициализация ------------------------------ #
     def __init__(self, tt_data: TwoTowerData):
-        # Покупатели
+        # 1) Покупатели
+        # Фичи
         self.customer_num = torch.from_numpy(tt_data.customers.numeric)
         self.customer_cat = torch.from_numpy(tt_data.customers.categorical)
+        # Размерности
+        self.customer_num_dim = len(tt_data.customers.numeric_columns)
+        self.customer_cat_sizes = [
+            x['n_classes'] 
+            for x in tt_data.customers.categorical_columns.values()
+        ]
 
-        # Товары
+        # 2) Товары
+        # Фичи
         self.article_num = torch.from_numpy(tt_data.articles.numeric)
         self.article_cat = torch.from_numpy(tt_data.articles.categorical)
+        # Размерности
+        self.article_num_dim = len(tt_data.articles.numeric_columns)
+        self.article_cat_sizes = [
+            x['n_classes'] 
+            for x in tt_data.articles.categorical_columns.values()
+        ]
 
-        # Пары
+        # 3) Пары
         self.pair_customer_id = torch.from_numpy(tt_data.pairs.customer_index)
         self.pair_article_id = torch.from_numpy(tt_data.pairs.article_index)
 
