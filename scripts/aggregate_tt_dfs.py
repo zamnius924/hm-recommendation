@@ -3,11 +3,11 @@ import numpy as np
 import pandas as pd
 
 from scripts.build_logger import build_logger
-from scripts.class_tt_data import TwoTowerData, PairData, \
-    ArticleData, CustomerData, Mapping
+from scripts.class_tt_data import AggregateData, PairData, \
+    FeatureData, Mapping
 from sklearn.preprocessing import LabelEncoder
 
-def generate_dataset(
+def aggregate_tt_dfs(
         df_customer: pd.DataFrame,
         df_article: pd.DataFrame,
         df_pairs: pd.DataFrame,
@@ -61,8 +61,8 @@ def generate_dataset(
 
     # --------------------------- Форматирование данных -------------------------- #
     # Формиатирование данных по покупателям и товарам
-    customers = CustomerData(**df_to_data(df_customer))
-    articles = ArticleData(**df_to_data(df_article))
+    customers = FeatureData(**df_to_data(df_customer))
+    articles = FeatureData(**df_to_data(df_article))
 
     # Форматирование данных по парам
     pairs = PairData(
@@ -71,14 +71,14 @@ def generate_dataset(
     )
 
     # Результирующие данные
-    tt_data = TwoTowerData(
+    aggr_data = AggregateData(
         customers=customers,
         articles=articles,
         pairs=pairs,
         mapping=Mapping(**mapping)
     )
 
-    return tt_data
+    return aggr_data
     
 
 # ---------------------------------------------------------------------------- #
