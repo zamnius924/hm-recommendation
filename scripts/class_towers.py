@@ -1,23 +1,34 @@
 import torch
 import torch.nn as nn
 
+# ---------------------------------------------------------------------------- #
+#                                     Башня                                    #
+# ---------------------------------------------------------------------------- #
 class Tower(nn.Module):
 
     # ---------------------------- Инициализация башни --------------------------- #
     def __init__(
             self,
-            num_input_dim: int,
-            num_hidden_dim: int,
+            num_input_dim: int, # кол-во входных числовых параметров
+            num_hidden_dim: int, # кол-во скрытых слоев MLP
             cat_sizes: list[int], # кол-во категорий в каждой категориальной переименной
             emb_dims: list[int], # размеры эмбеддингов
         ):
-        super().__init__() # наследование от nn.Module
+
+        # Проверка входных параметров
+        if len(cat_sizes) != len(emb_dims):
+            raise ValueError(
+                'cat_sizes and emb_dims must have the same length'
+            )
+
+        # Наследование от nn.Module
+        super().__init__()
 
         # Вспомогательные параметры
         self.cat_dim = len(cat_sizes) # кол-во категориальных признаков
 
         # Полносвязные слои
-        input_dim = num_input_dim + sum(emb_dims)
+        input_dim = num_input_dim + sum(emb_dims) # размерность с учетом эмбеддингов
 
         self.linear_1 = nn.Linear(in_features=input_dim, 
                                   out_features=num_hidden_dim)
@@ -38,6 +49,7 @@ class Tower(nn.Module):
         
         # Активация
         self.activation = nn.ReLU()
+
 
     # ----------------------------- Архитектура сети ----------------------------- #
     def forward(self, x_num, x_cat):
@@ -62,6 +74,9 @@ class Tower(nn.Module):
         return z
 
 
+# ---------------------------------------------------------------------------- #
+#                                   Две башни                                  #
+# ---------------------------------------------------------------------------- #
 class TwoTower(nn.Module):
 
     # ------------------------- Инициализация двух башен ------------------------- #
