@@ -54,16 +54,16 @@ class TwoTowerDataset(Dataset):
     # ------------------------------- Инициализация ------------------------------ #
     def __init__(self, tt_data: TwoTowerData):
         # Покупатели
-        self.customer_num = tt_data.customers.numeric
-        self.customer_cat = tt_data.customers.categorical
+        self.customer_num = torch.from_numpy(tt_data.customers.numeric)
+        self.customer_cat = torch.from_numpy(tt_data.customers.categorical)
 
         # Товары
-        self.article_num = tt_data.articles.numeric
-        self.article_cat = tt_data.articles.categorical
+        self.article_num = torch.from_numpy(tt_data.articles.numeric)
+        self.article_cat = torch.from_numpy(tt_data.articles.categorical)
 
         # Пары
-        self.pair_customer_id = tt_data.pairs.customer_index
-        self.pair_article_id = tt_data.pairs.article_index
+        self.pair_customer_id = torch.from_numpy(tt_data.pairs.customer_index)
+        self.pair_article_id = torch.from_numpy(tt_data.pairs.article_index)
 
 
     # -------------------------- Магический метод: длина ------------------------- #
@@ -79,10 +79,10 @@ class TwoTowerDataset(Dataset):
         index_article = self.pair_article_id[index] - 1
 
         # Тензоры с данными о фичах
-        customer_num = torch.tensor(self.customer_num[index_customer])
-        customer_cat = torch.tensor(self.customer_cat[index_customer])
-        article_num = torch.tensor(self.article_num[index_article])
-        article_cat = torch.tensor(self.article_cat[index_article])
+        customer_num = self.customer_num[index_customer]
+        customer_cat = self.customer_cat[index_customer]
+        article_num = self.article_num[index_article]
+        article_cat = self.article_cat[index_article]
 
         return {
             # Покупатели
