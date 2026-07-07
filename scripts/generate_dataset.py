@@ -107,8 +107,11 @@ def df_to_data(df: pd.DataFrame):
         # Применение энкодера
         data_categorical[col] = le.fit_transform(data_categorical[col])
 
-        # Сохранение энкодера
-        categorical_columns[col] = le
+        # Сохранение энкодера и кол-во классов
+        categorical_columns[col] = {
+            'encoder': le,
+            'n_classes': len(le.classes_)
+        }
 
     # Конвертация данных в массивы
     numeric = data_numeric.to_numpy(dtype=np.float32)
