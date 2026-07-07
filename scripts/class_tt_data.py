@@ -65,10 +65,12 @@ class TwoTowerDataset(Dataset):
         self.pair_customer_id = tt_data.pairs.customer_index
         self.pair_article_id = tt_data.pairs.article_index
 
+
     # -------------------------- Магический метод: длина ------------------------- #
     def __len__(self):
         return len(self.pair_customer_id)
     
+
     # ------------------ Магический метод: обращение по индексу ------------------ #
     def __getitem__(self, index):
 
@@ -76,16 +78,20 @@ class TwoTowerDataset(Dataset):
         index_customer = self.pair_customer_id[index] - 1
         index_article = self.pair_article_id[index] - 1
 
-        # Тензоры с данными
+        # Тензоры с данными о фичах
         customer_num = torch.tensor(self.customer_num[index_customer])
         customer_cat = torch.tensor(self.customer_cat[index_customer])
         article_num = torch.tensor(self.article_num[index_article])
         article_cat = torch.tensor(self.article_cat[index_article])
 
         return {
+            # Покупатели
+            'customer_idx': index_customer,
             'customer_num': customer_num,
             'customer_cat': customer_cat,
             
+            # Товары
+            'article_idx': index_article,
             'article_num': article_num,
             'article_cat': article_cat
         }
