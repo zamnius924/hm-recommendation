@@ -4,23 +4,62 @@ import torch.nn as nn
 class Tower(nn.Module):
 
     # ---------------------------- Инициализация башни --------------------------- #
-    def __init__(self, input_dim, hidden_dim):
+    def __init__(
+            self,
+            num_input_dim: int,
+            num_hidden_dim: int,
+            cat_sizes: list[int], # кол-во категорий в каждой категориальной переименной
+            emb_dims: list[int], # размеры эмбеддингов
+        ):
         super().__init__() # наследование от nn.Module
 
-        # Слои
-        self.linear_1 = nn.Linear(in_features=input_dim, out_features=hidden_dim)
-        self.linear_2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
+        # Вспомогательные параметры
+        self.cat_dim = len(cat_sizes) # кол-во категориальных признаков
 
+        # Полносвязные слои
+        input_dim = num_input_dim + sum(emb_dims)
+
+        self.linear_1 = nn.Linear(in_features=input_dim, 
+                                  out_features=num_hidden_dim)
+        self.linear_2 = nn.Linear(in_features=num_hidden_dim, 
+                                  out_features=num_hidden_dim)
+        
+        # Слои-эмбединги
+        self.emb = nn.ModuleList([
+            nn.Embedding(
+                num_embeddings=n_classes, 
+                embedding_dim=embedding_dim
+            )
+            for embedding_dim, n_classes in zip(emb_dims, cat_sizes)
+        ])
+
+        # Батч-нормализация
+        self.batch_norm = nn.BatchNorm1d(num_features=num_input_dim)
+        
         # Активация
         self.activation = nn.ReLU()
 
     # ----------------------------- Архитектура сети ----------------------------- #
-    def forward(self, x):
-        x = self.linear_1(x)
-        x = self.activation(x)
-        output = self.linear_2(x)
+    def forward(self, x_num, x_cat):
 
-        return output
+        # Эмбеддинг категориальных признаков
+        z_cat = torch.cat(
+            [emb(x_cat[:,i]) for i, emb in enumerate(self.emb)],
+            dim=1
+        )
+
+        # Батч-нормализация числовых признаков
+        x_num = self.batch_norm(x_num)
+
+        # Объединение числовых признаков и эмбеддингов
+        x = torch.cat([x_num, z_cat], dim=1)
+
+        # Подача данных в MLP
+        z = self.linear_1(x)
+        z = self.activation(z)
+        z = self.linear_2(z)
+
+        return z
 
 
 class TwoTower(nn.Module):
