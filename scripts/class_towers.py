@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+from scripts.class_tt_data import TowerInfo
+
 # ---------------------------------------------------------------------------- #
 #                                     Башня                                    #
 # ---------------------------------------------------------------------------- #
@@ -11,7 +13,7 @@ class Tower(nn.Module):
             self,
             num_input_dim: int, # кол-во входных числовых параметров
             num_hidden_dim: int, # кол-во скрытых слоев MLP
-            cat_sizes: list[int], # кол-во категорий в каждой категориальной переименной
+            cat_sizes: list[int], # кол-во категорий в каждой категориальной переменной
             emb_dims: list[int], # размеры эмбеддингов
         ):
 
@@ -87,19 +89,52 @@ class Tower(nn.Module):
 class TwoTower(nn.Module):
 
     # ------------------------- Инициализация двух башен ------------------------- #
-    def __init__(self, input_dim_customer, input_dim_article, hidden_dim):
-        super().__init__() # наследование от nn.Module
+    def __init__(
+            self, 
+            # Кол-во скрытых слоев MLP
+            num_hidden_dim_customer: int,
+            num_hidden_dim_article: int,
+            # Размеры эмбеддингов
+            emb_dims_customer: list[int], 
+            emb_dims_article: list[int],
+            # Параметры башен
+            tt_info: TowerInfo
+        ):
 
-        # Башни
-        self.customer = Tower(input_dim_customer, hidden_dim)
-        self.article = Tower(input_dim_article, hidden_dim)
+        # Наследование от nn.Module
+        super().__init__()
+
+        # Башня: покупатели
+        self.customer = Tower(
+            num_input_dim=tt_info.customer_num_dim,
+            num_hidden_dim=num_hidden_dim_customer,
+            cat_sizes=tt_info.customer_cat_sizes,
+            emb_dims=emb_dims_customer
+        )
+        
+        # Башня: товары
+        self.article = Tower(
+            num_input_dim=tt_info.article_num_dim,
+            num_hidden_dim=num_hidden_dim_article,
+            cat_sizes=tt_info.article_cat_sizes,
+            emb_dims=emb_dims_article
+        )
 
     # ----------------------------- Архитектура сети ----------------------------- #
-    def forward(self, x_customer, x_article):
-        u = self.customer(x_customer)
-        v = self.article(x_article)
+    def forward(
+            self, 
+            x_num_customer, 
+            x_cat_customer, 
+            x_num_article,
+            x_cat_article
+        ) -> torch.Tensor:
 
-        score = torch.sum(u * v, dim=1)
+        # Эмбеддинги покупателей и товаров
+        u = self.customer(x_num_customer, x_cat_customer)
+        v = self.article(x_num_article, x_cat_article)
 
-        return score
+        # Матрица скалярных произведений
+        scores = u @ v.T # UV'
+
+        return scores
 
