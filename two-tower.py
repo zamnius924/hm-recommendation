@@ -6,11 +6,15 @@ import torch.nn as nn
 
 from scripts.aggregate_tt_dfs import aggregate_tt_dfs
 from scripts.build_mapping import build_mapping
-from scripts.class_towers import Tower, TwoTower
+from scripts.class_loss import SymmetricCrossEntropyLoss
+from scripts.class_towers import TwoTower
 from scripts.class_tt_data import TwoTowerDataset, TowerInfo
 from scripts.generate_tt_dfs import generate_tt_dfs
 from scripts.load_db import load_db
 from scripts.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR
+from torch import optim
+from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 # %% Загрузка параметров
 # Временное разделение на train-, valid- и test-выборки
@@ -40,7 +44,8 @@ df_aggr = aggregate_tt_dfs(df_customer, df_article, df_pairs, mapping)
 tt_info = TowerInfo(df_aggr)
 tt_dataset = TwoTowerDataset(df_aggr)
 
-# %%
+# %% Инициализация модели
+# Экземпляр сети
 tt_model = TwoTower(
     num_hidden_dim_customer=64,
     num_hidden_dim_article=64,
@@ -49,20 +54,49 @@ tt_model = TwoTower(
     tt_info=tt_info
 )
 
-# %%
-customer_tower = Tower(
-    num_input_dim=tt_info.customer_num_dim,
-    num_hidden_dim=64,
-    cat_sizes=tt_info.customer_cat_sizes,
-    emb_dims=[8, 8]
+# Функция потерь
+criterion = SymmetricCrossEntropyLoss()
+
+# Даталоадер
+loader = DataLoader(
+    tt_dataset,
+    batch_size=512,
+    shuffle=True,
+    num_workers=0
 )
 
-article_tower = Tower(
-    num_input_dim=tt_info.article_num_dim,
-    num_hidden_dim=64,
-    cat_sizes=tt_info.article_cat_sizes,
-    emb_dims=[]
-)
+# Оптимизатор
+optimizer = optim.Adam(tt_model.parameters(), lr=1e-3)
+
+# %%
+# Перевод модели в режим обучения
+tt_model.train()
+
+for batch in tqdm(loader):
+
+    # Обнуление градиента
+    optimizer.zero_grad()
+
+    # Эмбеддинги покупателей и товаров
+    u, v = tt_model(
+        batch['customer_num'], 
+        batch['customer_cat'], 
+        batch['article_num'], 
+        batch['article_cat']
+    )
+
+    # Матрица скалярных произведений
+    logits = tt_model.similarity(u, v)
+
+    # Значение функционала потерь
+    loss = criterion(logits)
+
+    # backward pass – оценка производных и градиента функции потерь
+    loss.backward()
+
+    # Шаг градиентного спуска – новые значения параметров
+    optimizer.step()
+
 
 # %%
 batch_size = 10
@@ -74,17 +108,27 @@ x_num_article = tt_dataset[0:batch_size]['article_num']
 x_cat_article = tt_dataset[0:batch_size]['article_cat']
 
 # %%
-y_customer = customer_tower(x_num_customer, x_cat_customer)
-y_article = article_tower(x_num_article, x_cat_article)
+u, v = tt_model(
+    x_num_customer, 
+    x_cat_customer, 
+    x_num_article, 
+    x_cat_article
+)
+
+# %% Матрица скалярных произведений
+logits = tt_model.similarity(u, v)
+
+#target = torch.arange(logits.shape[0], device=logits.device)
 
 # %%
-y_customer @ y_article.T
+loss = criterion(logits)
 
 # %%
-#train_loader = DataLoader(
-#    train_dataset,
-#    batch_size=1024,
-#    shuffle=True,
-#    drop_last=True,  # stable batch shapes
-#    num_workers=0,   # use 0 for notebook simplicity; increase for speed
-#)
+batch = next(iter(loader))
+
+
+
+
+
+
+# %%
