@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 
 class SymmetricCrossEntropyLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__() # наследование от nn.Module
-        self.criterion = nn.CrossEntropyLoss() # односторонний лосс
+        self.criterion = nn.CrossEntropyLoss(**kwargs) # односторонний лосс
 
     def forward(self, logits: torch.Tensor):
 
@@ -15,8 +15,9 @@ class SymmetricCrossEntropyLoss(nn.Module):
         logits_customer = logits
         logits_article = logits.T
 
-        # Потери для покупателей и товаров
-        loss_customer = self.criterion(logits_customer, target) # покупателю правильный товар
-        loss_article = self.criterion(logits_article, target) # товару правильный покупатель
+        # Лосс для задачи: рекомендовать каждому покупателю правильный товар
+        loss_customer = self.criterion(logits_customer, target) 
+        # Лосс для задачи: подобрать каждому товару "правильного" покупателя
+        loss_article = self.criterion(logits_article, target)
 
         return (loss_customer + loss_article) / 2
