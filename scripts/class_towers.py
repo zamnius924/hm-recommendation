@@ -123,18 +123,28 @@ class TwoTower(nn.Module):
     # ----------------------------- Архитектура сети ----------------------------- #
     def forward(
             self, 
-            x_num_customer, 
-            x_cat_customer, 
-            x_num_article,
-            x_cat_article
-        ) -> torch.Tensor:
+            x_num_customer: torch.Tensor, 
+            x_cat_customer: torch.Tensor, 
+            x_num_article: torch.Tensor,
+            x_cat_article: torch.Tensor
+        ) -> tuple[torch.Tensor, torch.Tensor]:
 
         # Эмбеддинги покупателей и товаров
         u = self.customer(x_num_customer, x_cat_customer)
         v = self.article(x_num_article, x_cat_article)
 
-        # Матрица скалярных произведений
-        scores = u @ v.T # UV'
+        return u, v
+    
+    # --------------------------- Дополнительные методы -------------------------- #
+    @staticmethod # ссылка на экземпляр self не нужна
+    def similarity(u: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
 
-        return scores
+        # Нормализация эмбеддингов
+        u_norm = nn.functional.normalize(u, dim=1)
+        v_norm = nn.functional.normalize(v, dim=1)
+
+        # Скалярное произведение нормализованных векторов => cosine similarity
+        dot_prod = u_norm @ v_norm.T 
+        
+        return dot_prod
 
