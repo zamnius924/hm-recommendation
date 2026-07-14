@@ -65,16 +65,16 @@ class TwoTowerDataset(Dataset):
     # ------------------------------- Инициализация ------------------------------ #
     def __init__(self, tt_data: AggregateData):
         # Покупатели
-        self.customer_num = torch.from_numpy(tt_data.customers.numeric)
-        self.customer_cat = torch.from_numpy(tt_data.customers.categorical)
+        self.customer_num = torch.from_numpy(tt_data.customers.numeric.copy())
+        self.customer_cat = torch.from_numpy(tt_data.customers.categorical.copy())
 
         # Товары
-        self.article_num = torch.from_numpy(tt_data.articles.numeric)
-        self.article_cat = torch.from_numpy(tt_data.articles.categorical)
+        self.article_num = torch.from_numpy(tt_data.articles.numeric.copy())
+        self.article_cat = torch.from_numpy(tt_data.articles.categorical.copy())
 
         # Пары
-        self.pair_customer_id = torch.from_numpy(tt_data.pairs.customer_index)
-        self.pair_article_id = torch.from_numpy(tt_data.pairs.article_index)
+        self.pair_customer_id = torch.from_numpy(tt_data.pairs.customer_index.copy())
+        self.pair_article_id = torch.from_numpy(tt_data.pairs.article_index.copy())
 
 
     # -------------------------- Магический метод: длина ------------------------- #
