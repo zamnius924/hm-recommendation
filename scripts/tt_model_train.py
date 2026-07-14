@@ -4,7 +4,7 @@ from IPython.display import clear_output
 from scripts.class_towers import TwoTower
 from scripts.tt_model_inference import tt_model_inference
 from scripts.tt_model_plot_stats import tt_model_plot_stats
-from scripts.tt_model_training_step import tt_model_training_step
+from scripts.tt_model_train_epoch import tt_model_train_epoch
 from torch import optim
 from torch.utils.data import DataLoader
 
@@ -24,7 +24,7 @@ def tt_model_train(
     for epoch in range(num_epochs):
 
         # Обучение
-        train_loss = tt_model_training_step(
+        train_loss = tt_model_train_epoch(
             tt_model,
             data_loader_train,
             optimizer,
@@ -43,6 +43,10 @@ def tt_model_train(
         test_loss_history.append(test_loss)
 
         clear_output()
+
+        print(f'Epoch: {epoch + 1}/{num_epochs}')
+        print(f'Train loss: {train_loss}')
+        print(f'Test loss: {test_loss}')
 
         # Визуализация
         tt_model_plot_stats(

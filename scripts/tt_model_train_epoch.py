@@ -5,7 +5,7 @@ from torch import optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-def tt_model_training_step(
+def tt_model_train_epoch(
         tt_model: TwoTower,
         data_loader: DataLoader,
         optimizer: optim.Optimizer,
@@ -46,7 +46,5 @@ def tt_model_training_step(
 
     # Усреднение потерь по батчам
     total_loss /= len(data_loader)
-
-    print(f'Loss on epoch (training): {total_loss}')
 
     return total_loss
