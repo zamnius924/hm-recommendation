@@ -38,6 +38,4 @@ def tt_model_inference(
     # Усреднение потерь по батчам
     total_loss /= len(data_loader)
 
-    print(f'Loss on epoch (inference): {total_loss}')
-
     return total_loss
