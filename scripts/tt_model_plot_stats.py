@@ -7,15 +7,23 @@ def tt_model_plot_stats(
         title: str
     ):
 
+    # Номера эпох
+    epochs = range(1, len(train_loss) + 1)
+
     # Инициализация полотна
-    plt.figure(figsize=(16, 8))
+    plt.figure(figsize=(12, 8))
 
     # Построение графиков
-    plt.plot(train_loss, label='Train loss')
-    plt.plot(test_loss, label='Test loss')
+    plt.plot(epochs, train_loss, marker='o', label='Train loss')
+    plt.plot(epochs, test_loss, marker='o', label='Test loss')
     
-    # Дополнительные параметры
+    # Подписи
     plt.title(title) # название
+    plt.xlabel('Epoch') # ось X
+    plt.ylabel('Loss') # ось Y
+
+    # Дополнительные настройки
+    plt.xticks(epochs) # целочисленные метки эпох
     plt.legend() # легенда
     plt.grid() # сетка
 
