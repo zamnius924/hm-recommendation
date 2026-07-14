@@ -10,7 +10,7 @@ def tt_model_train(
         data_loader: DataLoader,
         optimizer: optim.Optimizer,
         criterion: nn.Module
-    ):
+    ) -> float:
 
     # Перевод модели в режим обучения
     tt_model.train()
@@ -47,6 +47,6 @@ def tt_model_train(
     # Усреднение потерь по батчам
     total_loss /= len(data_loader)
 
-    print(f'Loss on epoch: {total_loss}')
+    print(f'Loss on epoch (training): {total_loss}')
 
     return total_loss
