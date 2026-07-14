@@ -54,7 +54,7 @@ class Tower(nn.Module):
         self.batch_norm = nn.BatchNorm1d(num_features=num_input_dim)
         
         # Активация
-        self.activation = nn.ReLU()
+        self.activation = nn.GELU()
 
 
     # ----------------------------- Архитектура сети ----------------------------- #
@@ -98,7 +98,8 @@ class TwoTower(nn.Module):
             emb_dims_customer: list[int], 
             emb_dims_article: list[int],
             # Параметры башен
-            tt_info: TowerInfo
+            tt_info: TowerInfo,
+            temperature: float
         ):
 
         # Наследование от nn.Module
@@ -120,6 +121,9 @@ class TwoTower(nn.Module):
             emb_dims=emb_dims_article
         )
 
+        # Дополнительные параметры
+        self.temperature = temperature
+
     # ----------------------------- Архитектура сети ----------------------------- #
     def forward(
             self, 
@@ -136,15 +140,14 @@ class TwoTower(nn.Module):
         return u, v
     
     # --------------------------- Дополнительные методы -------------------------- #
-    @staticmethod # ссылка на экземпляр self не нужна
-    def similarity(u: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
+    def similarity(self, u: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
 
         # Нормализация эмбеддингов
-        u_norm = nn.functional.normalize(u, dim=1)
-        v_norm = nn.functional.normalize(v, dim=1)
+        u_norm = nn.functional.normalize(u, dim=1, eps=1e-8)
+        v_norm = nn.functional.normalize(v, dim=1, eps=1e-8)
 
         # Скалярное произведение нормализованных векторов => cosine similarity
-        dot_prod = u_norm @ v_norm.T 
+        dot_prod = u_norm @ v_norm.T / self.temperature
         
         return dot_prod
 
