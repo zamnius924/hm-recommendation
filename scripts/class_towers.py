@@ -12,15 +12,21 @@ class Tower(nn.Module):
     def __init__(
             self,
             num_input_dim: int, # кол-во входных числовых параметров
-            num_hidden_dim: int, # кол-во скрытых слоев MLP
+            num_hidden_dims: list[int], # размеры выходов скрытых слоев
             cat_sizes: list[int], # кол-во категорий в каждой категориальной переменной
             emb_dims: list[int], # размеры эмбеддингов
+            drop_prob: float
         ):
 
         # Проверка входных параметров
         if len(cat_sizes) != len(emb_dims):
             raise ValueError(
                 'cat_sizes and emb_dims must have the same length'
+            )
+        
+        if len(num_hidden_dims) == 0:
+            raise ValueError(
+                'num_hidden_dims must contain at least one layer'
             )
 
         # Наследование от nn.Module
@@ -31,12 +37,16 @@ class Tower(nn.Module):
         self.cat_dim = len(cat_sizes) # кол-во категориальных признаков
 
         # Полносвязные слои
-        input_dim = num_input_dim + sum(emb_dims) # размерность с учетом эмбеддингов
+        input_dim = num_input_dim + sum(emb_dims) # входная размерность с учетом эмбеддингов
+        num_dims = [input_dim] + num_hidden_dims # список размерностей слоев
 
-        self.linear_1 = nn.Linear(in_features=input_dim, 
-                                  out_features=num_hidden_dim)
-        self.linear_2 = nn.Linear(in_features=num_hidden_dim, 
-                                  out_features=num_hidden_dim)
+        self.layers = nn.ModuleList([
+            nn.Linear(
+                in_features=dim_in,
+                out_features=dim_out
+            )
+            for dim_in, dim_out in zip(num_dims[:-1], num_dims[1:])
+        ])
         
         # Слои-эмбединги
         if self.use_emb:
@@ -55,6 +65,9 @@ class Tower(nn.Module):
         
         # Активация
         self.activation = nn.GELU()
+
+        # Дропаут
+        self.drop = nn.Dropout(p=drop_prob)
 
 
     # ----------------------------- Архитектура сети ----------------------------- #
@@ -76,11 +89,13 @@ class Tower(nn.Module):
             x = x_num
 
         # Подача данных в MLP
-        z = self.linear_1(x)
-        z = self.activation(z)
-        z = self.linear_2(z)
+        for i, linear in enumerate(self.layers):
+            x = linear(x) # линейный слой
+            if i < len(self.layers) - 1: # если не последний слой:
+                x = self.activation(x) # активация
+                x = self.drop(x) # дропаут
 
-        return z
+        return x
 
 
 # ---------------------------------------------------------------------------- #
@@ -92,15 +107,22 @@ class TwoTower(nn.Module):
     def __init__(
             self, 
             # Кол-во скрытых слоев MLP
-            num_hidden_dim_customer: int,
-            num_hidden_dim_article: int,
+            num_hidden_dims_customer: list[int],
+            num_hidden_dims_article: list[int],
             # Размеры эмбеддингов
             emb_dims_customer: list[int], 
             emb_dims_article: list[int],
             # Параметры башен
             tt_info: TowerInfo,
-            temperature: float
+            temperature: float,
+            drop_prob: float
         ):
+
+        # Проверка входных параметров
+        if num_hidden_dims_customer[-1] != num_hidden_dims_article[-1]:
+            raise ValueError(
+                'Customer and article towers must have the same output dimension'
+            )
 
         # Наследование от nn.Module
         super().__init__()
@@ -108,17 +130,19 @@ class TwoTower(nn.Module):
         # Башня: покупатели
         self.customer = Tower(
             num_input_dim=tt_info.customer_num_dim,
-            num_hidden_dim=num_hidden_dim_customer,
+            num_hidden_dims=num_hidden_dims_customer,
             cat_sizes=tt_info.customer_cat_sizes,
-            emb_dims=emb_dims_customer
+            emb_dims=emb_dims_customer,
+            drop_prob=drop_prob
         )
         
         # Башня: товары
         self.article = Tower(
             num_input_dim=tt_info.article_num_dim,
-            num_hidden_dim=num_hidden_dim_article,
+            num_hidden_dims=num_hidden_dims_article,
             cat_sizes=tt_info.article_cat_sizes,
-            emb_dims=emb_dims_article
+            emb_dims=emb_dims_article,
+            drop_prob=drop_prob
         )
 
         # Дополнительные параметры
