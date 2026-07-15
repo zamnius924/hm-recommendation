@@ -4,7 +4,7 @@ from scripts.class_tt_data import TwoTowerDataset, TowerInfo
 from scripts.generate_tt_dfs import generate_tt_dfs
 from scripts.load_db import load_db
 
-def generate_tt(split_dates: dict):
+def generate_tt_train(split_dates: dict):
 
     # --------------- Создание датафреймов с фичами и индексами пар -------------- #
     # Подключение к БД

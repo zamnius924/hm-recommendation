@@ -1,10 +1,11 @@
 # %%  Импорт библиотек
 import json
+import torch
 
 from scripts.class_loss import SymmetricCrossEntropyLoss
 from scripts.class_towers import TwoTower
-from scripts.generate_tt import generate_tt
-from scripts.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR
+from scripts.generate_tt_train import generate_tt_train
+from scripts.paths import DATA_PROCESSED_DIR, MODELS_DIR
 from scripts.tt_model_train import tt_model_train
 from torch import optim
 from torch.utils.data import DataLoader
@@ -15,8 +16,8 @@ with open(file=DATA_PROCESSED_DIR / 'split_dates.json', mode='r') as file:
     dates = json.load(file)
 
 # %% Создание данных для Two-tower model
-tt_dataset_train, tt_info_train = generate_tt(dates['train'])
-tt_dataset_test, tt_info_test = generate_tt(dates['test'])
+tt_dataset_train, tt_info_train = generate_tt_train(dates['train'])
+tt_dataset_test, tt_info_test = generate_tt_train(dates['test'])
 
 # %% Инициализация модели
 # Экземпляр сети
@@ -64,4 +65,5 @@ tt_model_train(
     num_epochs
 )
 
-# %%
+# %% Сохранение модели
+torch.save(obj=tt_model, f=MODELS_DIR / 'tt_model.pt')
