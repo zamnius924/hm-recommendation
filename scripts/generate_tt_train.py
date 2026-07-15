@@ -25,10 +25,14 @@ def generate_tt_train(split_dates: dict):
     mapping = build_mapping(df_customer, df_article, df_pairs)
 
     # Вспомогательные данные
-    df_aggr = aggregate_tt_dfs(df_customer, df_article, df_pairs, mapping)
+    aggr_data = aggregate_tt_dfs(df_customer, 
+                                 df_article, 
+                                 df_pairs, 
+                                 mapping,
+                                 pairs=True)
 
     # Данные для Two-tower model
-    tt_info = TowerInfo(df_aggr)
-    tt_dataset = TwoTowerDataset(df_aggr)
+    tt_info = TowerInfo(aggr_data)
+    tt_dataset = TwoTowerDataset(aggr_data)
 
     return tt_dataset, tt_info
