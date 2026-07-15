@@ -50,11 +50,76 @@ class AggregateData:
     mapping: Mapping
 
 class TowerInfo:
-    def __init__(self, df_aggr: AggregateData):
+    def __init__(
+            self, 
+            df_aggr: AggregateData
+        ):
+
         self.customer_num_dim = df_aggr.customers.num_dim()
         self.article_num_dim = df_aggr.articles.num_dim()
         self.customer_cat_sizes = df_aggr.customers.cat_sizes()
         self.article_cat_sizes = df_aggr.articles.cat_sizes()
+
+
+
+
+# ---------------------------------------------------------------------------- #
+#                           Вспомогательные датасеты                           #
+# ---------------------------------------------------------------------------- #
+class FeatureDataset(Dataset):
+
+    # ------------------------------- Инициализация ------------------------------ #
+    def __init__(
+            self, 
+            numeric: np.ndarray, 
+            categorical: np.ndarray
+        ):
+        self.numeric = torch.from_numpy(numeric.copy())
+        self.categorical = torch.from_numpy(categorical.copy())
+
+    # -------------------------- Магический метод: длина ------------------------- #
+    def __len__(self):
+        return len(self.num)
+    
+    # --------------------------- Вспомогательный метод -------------------------- #
+    def get(self, index):
+        return self.numeric[index], self.categorical[index]
+
+
+class CustomerDataset(FeatureDataset):
+
+    # ------------------------------- Инициализация ------------------------------ #
+    def __init__(
+            self,
+            customer_data: FeatureData
+        ):
+        super().__init__(customer_data.numeric, customer_data.categorical)
+
+    # ------------------ Магический метод: обращение по индексу ------------------ #
+    def __getitem__(self, index):
+        return {
+            'customer_idx': index + 1,
+            'customer_num': self.numeric[index],
+            'customer_cat': self.categorical[index]
+        }
+
+
+class ArticleDataset(FeatureDataset):
+
+    # ------------------------------- Инициализация ------------------------------ #
+    def __init__(
+            self,
+            article_data: FeatureData
+        ):
+        super().__init__(article_data.numeric, article_data.categorical)
+
+    # ------------------ Магический метод: обращение по индексу ------------------ #
+    def __getitem__(self, index):
+        return {
+            'article_idx': index + 1,
+            'article_num': self.numeric[index],
+            'article_cat': self.categorical[index]
+        }
 
 
 
@@ -65,14 +130,21 @@ class TowerInfo:
 class TwoTowerDataset(Dataset):
 
     # ------------------------------- Инициализация ------------------------------ #
-    def __init__(self, tt_data: AggregateData):
+    def __init__(
+            self, 
+            tt_data: AggregateData
+        ):
         # Покупатели
-        self.customer_num = torch.from_numpy(tt_data.customers.numeric.copy())
-        self.customer_cat = torch.from_numpy(tt_data.customers.categorical.copy())
+        self.customers = FeatureDataset(
+            numeric=tt_data.customers.numeric,
+            categorical=tt_data.customers.categorical
+        )
 
         # Товары
-        self.article_num = torch.from_numpy(tt_data.articles.numeric.copy())
-        self.article_cat = torch.from_numpy(tt_data.articles.categorical.copy())
+        self.articles = FeatureDataset(
+            numeric=tt_data.articles.numeric,
+            categorical=tt_data.articles.categorical
+        )
 
         # Пары
         self.pair_customer_id = torch.from_numpy(tt_data.pairs.customer_index.copy())
@@ -92,10 +164,8 @@ class TwoTowerDataset(Dataset):
         index_article = self.pair_article_id[index] - 1
 
         # Тензоры с данными о фичах
-        customer_num = self.customer_num[index_customer]
-        customer_cat = self.customer_cat[index_customer]
-        article_num = self.article_num[index_article]
-        article_cat = self.article_cat[index_article]
+        customer_num, customer_cat = self.customers.get(index_customer)
+        article_num, article_cat = self.articles.get(index_article)
 
         return {
             # Покупатели
@@ -108,4 +178,3 @@ class TwoTowerDataset(Dataset):
             'article_num': article_num,
             'article_cat': article_cat
         }
-    
