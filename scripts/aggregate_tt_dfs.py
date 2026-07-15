@@ -11,70 +11,28 @@ def aggregate_tt_dfs(
         df_customer: pd.DataFrame,
         df_article: pd.DataFrame,
         df_pairs: pd.DataFrame,
-        mapping: dict
+        mapping: dict,
+        pairs: bool = True
     ):
 
     # Инициализация логгера
     logger = build_logger()
 
-    # ----------------------------- Смена индексации ----------------------------- #
-    df_customer['customer_index'] = (df_customer['customer_id']
-                                  .map(mapping['customer_id2index']))
-    
-    df_article['article_index'] = (df_article['article_id']
-                                .map(mapping['article_id2index']))
-    
-    df_pairs['customer_index'] = (df_pairs['customer_id']
-                               .map(mapping['customer_id2index']))
-    
-    df_pairs['article_index'] = (df_pairs['article_id']
-                              .map(mapping['article_id2index']))
-    
-    # Тест 1: соблюдена сортировка по customer_index
-    test(logger, df_customer, 'customer_index')
+    # Вспомгательные данные: фичи
+    customers_data = aggregate_customer_df(logger, df_customer, mapping)
+    articles_data = aggregate_article_df(logger, df_article, mapping)
 
-    # Тест 2: соблюдена сортировка по article_index
-    test(logger, df_article, 'article_index')
-    
-    
-    # ------------------------------ Правки к данным ----------------------------- #
-    # Удаление индексов и идентификаторов
-    df_customer = df_customer.drop(
-        ['customer_id', 'customer_index'],
-        axis=1
-    )
-    df_article = df_article.drop(
-        ['article_id', 'article_index'],
-        axis=1
-    )
-    df_pairs = df_pairs.drop(
-        ['customer_id', 'article_id'],
-        axis=1
-    )
-    
-    # Удаление дат
-    df_article = df_article.drop(
-        df_article.select_dtypes(include='datetime').columns,
-        axis=1
-    )
-
-
-    # --------------------------- Форматирование данных -------------------------- #
-    # Формиатирование данных по покупателям и товарам
-    customers = FeatureData(**df_to_data(df_customer))
-    articles = FeatureData(**df_to_data(df_article))
-
-    # Форматирование данных по парам
-    pairs = PairData(
-        customer_index=df_pairs['customer_index'].to_numpy(dtype=np.int64),
-        article_index=df_pairs['article_index'].to_numpy(dtype=np.int64)
-    )
+    # Вспомгательные данные: пары
+    if pairs:
+        pairs_data = aggregate_pairs_df(df_pairs, mapping)
+    else:
+        pairs_data = None
 
     # Результирующие данные
     aggr_data = AggregateData(
-        customers=customers,
-        articles=articles,
-        pairs=pairs,
+        customers=customers_data,
+        articles=articles_data,
+        pairs=pairs_data,
         mapping=Mapping(**mapping)
     )
 
@@ -84,6 +42,109 @@ def aggregate_tt_dfs(
 # ---------------------------------------------------------------------------- #
 #                            Вспомогательные функции                           #
 # ---------------------------------------------------------------------------- #
+def aggregate_customer_df(
+        logger: logging.Logger,
+        df_customer: pd.DataFrame,
+        mapping: dict
+    ) -> FeatureData:
+    """
+    Обработка, очистка и перевод df_customer в FeatureData 
+    """
+
+    # ----------------------------- Смена индексации ----------------------------- #
+    df_customer['customer_index'] = (df_customer['customer_id']
+                                  .map(mapping['customer_id2index']))
+    
+    # Тест: соблюдена сортировка по customer_index
+    test(logger, df_customer, 'customer_index')
+
+
+    # ------------------------------ Правки к данным ----------------------------- #
+    # Удаление индексов и идентификаторов
+    df_customer = df_customer.drop(
+        ['customer_id', 'customer_index'],
+        axis=1
+    )
+
+
+    # --------------------------- Форматирование данных -------------------------- #
+    # Формиатирование данных по покупателям
+    customers = FeatureData(**df_to_data(df_customer))
+
+    return customers
+
+
+def aggregate_article_df(
+        logger: logging.Logger,
+        df_article: pd.DataFrame,
+        mapping: dict
+    ) -> FeatureData:
+    """
+    Обработка, очистка и перевод df_article в FeatureData 
+    """
+
+    # ----------------------------- Смена индексации ----------------------------- #
+    df_article['article_index'] = (df_article['article_id']
+                                .map(mapping['article_id2index']))
+    
+    # Тест: соблюдена сортировка по article_index
+    test(logger, df_article, 'article_index')
+
+
+    # ------------------------------ Правки к данным ----------------------------- #
+    # Удаление индексов и идентификаторов
+    df_article = df_article.drop(
+        ['article_id', 'article_index'],
+        axis=1
+    )
+
+    # Удаление дат
+    df_article = df_article.drop(
+        df_article.select_dtypes(include='datetime').columns,
+        axis=1
+    )
+
+
+    # --------------------------- Форматирование данных -------------------------- #
+    # Формиатирование данных по товарам
+    articles = FeatureData(**df_to_data(df_article))
+
+    return articles
+
+
+def aggregate_pairs_df(
+        df_pairs: pd.DataFrame,
+        mapping: dict
+    ) -> PairData:
+    """
+    Обработка, очистка и перевод df_pairs в PairData 
+    """
+
+    # ----------------------------- Смена индексации ----------------------------- #
+    df_pairs['customer_index'] = (df_pairs['customer_id']
+                                  .map(mapping['customer_id2index']))
+    df_pairs['article_index'] = (df_pairs['article_id']
+                                 .map(mapping['article_id2index']))
+    
+
+    # ------------------------------ Правки к данным ----------------------------- #
+    # Удаление индексов и идентификаторов
+    df_pairs = df_pairs.drop(
+        ['customer_id', 'article_id'],
+        axis=1
+    )
+
+
+    # --------------------------- Форматирование данных -------------------------- #
+    # Формиатирование данных по парам
+    pairs = PairData(
+        customer_index=df_pairs['customer_index'].to_numpy(dtype=np.int64),
+        article_index=df_pairs['article_index'].to_numpy(dtype=np.int64)
+    )
+
+    return pairs
+
+
 def df_to_data(df: pd.DataFrame):
     """
     Форматирование данных:
