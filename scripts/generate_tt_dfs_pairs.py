@@ -1,5 +1,6 @@
-def generate_pairs(
+def generate_tt_pairs(
         con, 
+        logger,
         split_dates: dict
     ):
     """
@@ -9,7 +10,9 @@ def generate_pairs(
         - customer_features и article_features отфильтрованы так,
           чтобы объекты присутствовали в target_window
     """
-    
+
+    logger.info('3. Create pairs')
+
     # Создание positive pairs
     con.execute(f"""
         CREATE OR REPLACE TABLE pairs AS 

@@ -13,7 +13,8 @@ def generate_tt_train(split_dates: dict):
     # Датафреймы с фичами и индексами пар
     df_customer, df_article, df_pairs = generate_tt_dfs(con, 
                                                         split_dates, 
-                                                        return_df=True)
+                                                        return_df=True,
+                                                        pairs=True)
 
     # Отключение от БД
     con.close()
