@@ -21,12 +21,13 @@ tt_dataset_test, tt_info_test = generate_tt(dates['test'])
 # %% Инициализация модели
 # Экземпляр сети
 tt_model = TwoTower(
-    num_hidden_dim_customer=128,
-    num_hidden_dim_article=128,
+    num_hidden_dims_customer=[512, 256, 128],
+    num_hidden_dims_article=[512, 256, 128],
     emb_dims_customer=[8, 8], 
     emb_dims_article=[],
     tt_info=tt_info_train,
-    temperature=0.03
+    temperature=0.03,
+    drop_prob=0.1
 )
 
 # Функция потерь
@@ -43,7 +44,7 @@ data_loader_train = DataLoader(
 data_loader_test = DataLoader(
     tt_dataset_test,
     batch_size=512,
-    shuffle=True,
+    shuffle=False,
     num_workers=0
 )
 
@@ -62,4 +63,5 @@ tt_model_train(
     criterion,
     num_epochs
 )
+
 # %%
