@@ -50,7 +50,7 @@ def customers(
 def recommendations(
         request: Request,
         customer_id: str, 
-        k: int = Query(default=12, ge=1, le=100),
+        k: int = Query(default=12, ge=1, le=100)
     ) -> RecommendationResponse:
     
     con = request.app.state.con
