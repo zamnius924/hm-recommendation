@@ -160,12 +160,20 @@ class TwoTower(nn.Module):
         ) -> tuple[torch.Tensor, torch.Tensor]:
 
         # Эмбеддинги покупателей и товаров
-        u = self.customer(x_num_customer, x_cat_customer)
-        v = self.article(x_num_article, x_cat_article)
+        u = self.encode_customers(x_num_customer, x_cat_customer)
+        v = self.encode_articles(x_num_article, x_cat_article)
 
         return u, v
     
     # --------------------------- Дополнительные методы -------------------------- #
+    def encode_customers(self, x_num: torch.Tensor, x_cat: torch.Tensor):
+        return self.customer(x_num, x_cat)
+    
+
+    def encode_articles(self, x_num: torch.Tensor, x_cat: torch.Tensor):
+        return self.article(x_num, x_cat)
+
+
     def similarity(self, u: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
 
         # Нормализация эмбеддингов
