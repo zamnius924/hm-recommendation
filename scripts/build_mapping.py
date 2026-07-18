@@ -1,6 +1,6 @@
 import pandas as pd
 
-def build_mapping(*dfs):
+def build_mapping(*dfs) -> dict:
 
     # Все товары и покупатели
     customer_series = []
