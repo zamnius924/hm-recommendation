@@ -97,10 +97,14 @@ class CustomerDataset(FeatureDataset):
 
     # ------------------ Магический метод: обращение по индексу ------------------ #
     def __getitem__(self, index):
+
+        idx = index + 1 # индекс в мэппинге
+        customer_num, customer_cat = self.get(index) # фичи
+
         return {
-            'customer_idx': index + 1,
-            'customer_num': self.numeric[index],
-            'customer_cat': self.categorical[index]
+            'customer_idx': idx,
+            'customer_num': customer_num,
+            'customer_cat': customer_cat
         }
 
 
@@ -115,10 +119,14 @@ class ArticleDataset(FeatureDataset):
 
     # ------------------ Магический метод: обращение по индексу ------------------ #
     def __getitem__(self, index):
+        
+        idx = index + 1 # индекс в мэппинге
+        article_num, article_cat = self.get(index) # фичи
+
         return {
-            'article_idx': index + 1,
-            'article_num': self.numeric[index],
-            'article_cat': self.categorical[index]
+            'article_idx': idx,
+            'article_num': article_num,
+            'article_cat': article_cat
         }
 
 
