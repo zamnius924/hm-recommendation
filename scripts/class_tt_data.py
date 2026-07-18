@@ -79,7 +79,7 @@ class FeatureDataset(Dataset):
 
     # -------------------------- Магический метод: длина ------------------------- #
     def __len__(self):
-        return len(self.num)
+        return len(self.numeric)
     
     # --------------------------- Вспомогательный метод -------------------------- #
     def get(self, index):
