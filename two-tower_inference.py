@@ -4,6 +4,9 @@ import torch
 
 from scripts.generate_tt_inference import generate_tt_inference
 from scripts.paths import DATA_PROCESSED_DIR, MODELS_DIR
+from torch.utils.data import DataLoader
+
+from scripts.tt_model_candidates import tt_model_candidates
 
 # %% Загрузка
 # Временное разделение на train-, valid- и test-выборки
@@ -15,7 +18,32 @@ tt_model = torch.load(
     f=MODELS_DIR / 'tt_model.pt',
     weights_only=False
 )
-# %%
+
+# %% Создание данных для энкодинга (покупатели, товары)
 customer_dataset, article_dataset, mapping = generate_tt_inference(dates['train'])
 
+# %% Даталоадеры
+# Покупатели
+data_loader_customer = DataLoader(
+    customer_dataset,
+    batch_size=512,
+    shuffle=False,
+    num_workers=0
+)
+
+# Товары
+data_loader_article = DataLoader(
+    article_dataset,
+    batch_size=512,
+    shuffle=False,
+    num_workers=0
+)
+
+# %% Генерация кандидатов
+tt_candidates_idx, tt_candidates_val = tt_model_candidates(
+    tt_model,
+    data_loader_customer,
+    data_loader_article,
+    k=100
+)
 # %%
