@@ -1,7 +1,7 @@
 from pathlib import Path
 
 # Объявление путей к директориям проекта
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__file__).parent.parent.parent
 
 DATA_DIR = ROOT / 'data'
 MODELS_DIR = ROOT / 'models'
