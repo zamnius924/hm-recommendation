@@ -2,9 +2,9 @@ import json
 import pandas as pd
 
 from catboost import CatBoostRanker
-from scripts.generate_pool import generate_pool
-from scripts.map_at_k import map_at_k
-from scripts.paths import DATA_PROD_DIR, MODELS_PROD_DIR, MODELS_PROD_CONFIG_DIR
+from scripts.ltr.generate_pool import generate_pool
+from scripts.evaluation.map_at_k import map_at_k
+from scripts.utils.paths import DATA_PROD_DIR, MODELS_PROD_DIR, MODELS_PROD_CONFIG_DIR
 
 def run_ltr_fit():
 

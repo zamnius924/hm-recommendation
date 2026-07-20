@@ -2,12 +2,12 @@
 import json
 import optuna
 
-from scripts.tuning_objective_als import tuning_objective_als
-from scripts.build_mapping import build_mapping
-from scripts.load_db import load_db
-from scripts.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR
-from scripts.sparse_interaction_matrix import sparse_interaction_matrix
-from scripts.window_extraction import window_extraction
+from scripts.als.tuning_objective_als import tuning_objective_als
+from scripts.data.build_mapping import build_mapping
+from scripts.data.load_db import load_db
+from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR
+from scripts.als.sparse_interaction_matrix import sparse_interaction_matrix
+from scripts.data.window_extraction import window_extraction
 
 # %% Подключение к БД и загрузка данных
 con = load_db()

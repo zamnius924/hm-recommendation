@@ -3,9 +3,9 @@ import json
 import optuna
 import pandas as pd
 
-from scripts.generate_pool import generate_pool
-from scripts.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR
-from scripts.tuning_objective_ltr import tuning_objective_ltr
+from scripts.ltr.generate_pool import generate_pool
+from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR
+from scripts.ltr.tuning_objective_ltr import tuning_objective_ltr
 
 # %% Импорт данных
 df_train = pd.read_parquet(DATA_PROCESSED_DIR / 'df_train.parquet', engine='pyarrow')

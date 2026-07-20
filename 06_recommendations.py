@@ -3,28 +3,28 @@ import json
 import pandas as pd
 
 from catboost import CatBoostRanker
-from scripts.generate_als_candidates import generate_als_candidates
-from scripts.generate_features import generate_features
-from scripts.generate_scores import generate_scores
-from scripts.load_db import load_db
-from scripts.paths import DATA_PROCESSED_DIR, DATA_RECOMMENDATIONS_DIR, MODELS_DIR, MODELS_CONFIG_DIR
+from scripts.als.generate_als_candidates import generate_als_candidates
+from scripts.features.generate_features import generate_features
+from scripts.ltr.generate_scores import generate_scores
+from scripts.data.load_db import load_db
+from scripts.utils.paths import DATA_PROCESSED_DIR, DATA_RECOMMENDATIONS_DIR, MODELS_DIR, MODELS_CONFIG_DIR
 
 # %% Development: Перезапуск 
 import importlib
-import scripts.generate_als_candidates
-import scripts.generate_features
-import scripts.generate_pool
-import scripts.generate_scores
+import scripts.als.generate_als_candidates
+import scripts.features.generate_features
+import scripts.ltr.generate_pool
+import scripts.ltr.generate_scores
 
-importlib.reload(scripts.generate_als_candidates)
-importlib.reload(scripts.generate_features)
-importlib.reload(scripts.generate_pool)
-importlib.reload(scripts.generate_scores)
+importlib.reload(scripts.als.generate_als_candidates)
+importlib.reload(scripts.features.generate_features)
+importlib.reload(scripts.ltr.generate_pool)
+importlib.reload(scripts.ltr.generate_scores)
 
-from scripts.generate_als_candidates import generate_als_candidates
-from scripts.generate_features import generate_features
-from scripts.generate_pool import generate_pool
-from scripts.generate_scores import generate_scores
+from scripts.als.generate_als_candidates import generate_als_candidates
+from scripts.features.generate_features import generate_features
+from scripts.ltr.generate_pool import generate_pool
+from scripts.ltr.generate_scores import generate_scores
 
 # %% Импорт
 # Загрузка параметров: даты

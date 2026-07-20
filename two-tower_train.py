@@ -2,11 +2,11 @@
 import json
 import torch
 
-from scripts.class_loss import SymmetricCrossEntropyLoss
-from scripts.class_towers import TwoTower
-from scripts.generate_tt_train import generate_tt_train
-from scripts.paths import DATA_PROCESSED_DIR, MODELS_DIR
-from scripts.tt_model_train import tt_model_train
+from scripts.two_tower.class_loss import SymmetricCrossEntropyLoss
+from scripts.two_tower.class_towers import TwoTower
+from scripts.two_tower.generate_tt_datasets import generate_tt_train
+from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_DIR
+from scripts.two_tower.tt_model_train import tt_model_train
 from torch import optim
 from torch.utils.data import DataLoader
 

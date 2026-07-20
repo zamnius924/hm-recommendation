@@ -4,7 +4,6 @@ import torch.nn as nn
 
 from IPython.display import clear_output
 from scripts.two_tower.class_towers import TwoTower
-from scripts.two_tower.tt_model_inference import tt_model_inference
 from torch import optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm

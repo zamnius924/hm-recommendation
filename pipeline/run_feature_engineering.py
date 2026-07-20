@@ -1,10 +1,10 @@
 import argparse
 import json
 
-from scripts.generate_als_candidates import generate_als_candidates
-from scripts.generate_features import generate_features
-from scripts.load_db import load_db
-from scripts.paths import DATA_PROD_DIR, MODELS_PROD_CONFIG_DIR
+from scripts.als.generate_als_candidates import generate_als_candidates
+from scripts.features.generate_features import generate_features
+from scripts.data.load_db import load_db
+from scripts.utils.paths import DATA_PROD_DIR, MODELS_PROD_CONFIG_DIR
 
 
 def build_dataset(con, dates: dict, sample: str, als_best_params: dict):

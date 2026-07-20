@@ -2,12 +2,12 @@ import json
 import pandas as pd
 
 from catboost import CatBoostRanker
-from scripts.generate_als_candidates import generate_als_candidates
-from scripts.generate_features import generate_features
-from scripts.generate_scores import generate_scores
-from scripts.load_db import load_db
-from scripts.load_window_config import load_window_config
-from scripts.paths import DATA_PROD_DIR, MODELS_PROD_DIR, MODELS_PROD_CONFIG_DIR
+from scripts.als.generate_als_candidates import generate_als_candidates
+from scripts.features.generate_features import generate_features
+from scripts.ltr.generate_scores import generate_scores
+from scripts.data.load_db import load_db
+from scripts.data.load_window_config import load_window_config
+from scripts.utils.paths import DATA_PROD_DIR, MODELS_PROD_DIR, MODELS_PROD_CONFIG_DIR
 
 def run_recommendations():
 

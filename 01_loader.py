@@ -2,8 +2,8 @@
 import datetime as dt
 import json
 
-from scripts.load_db import load_db
-from scripts.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR, MODELS_PROD_CONFIG_DIR
+from scripts.data.load_db import load_db
+from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR, MODELS_PROD_CONFIG_DIR
 
 # %% Подключение к БД и загрузка данных
 con = load_db()

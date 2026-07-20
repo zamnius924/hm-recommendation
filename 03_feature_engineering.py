@@ -2,21 +2,21 @@
 import json
 import pandas as pd
 
-from scripts.generate_als_candidates import generate_als_candidates
-from scripts.generate_features import generate_features
-from scripts.load_db import load_db
-from scripts.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR
+from scripts.als.generate_als_candidates import generate_als_candidates
+from scripts.features.generate_features import generate_features
+from scripts.data.load_db import load_db
+from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR
 
 # %% Development: Перезапуск 
 import importlib
-import scripts.generate_als_candidates
-import scripts.generate_features
+import scripts.als.generate_als_candidates
+import scripts.features.generate_features
 
-importlib.reload(scripts.generate_als_candidates)
-importlib.reload(scripts.generate_features)
+importlib.reload(scripts.als.generate_als_candidates)
+importlib.reload(scripts.features.generate_features)
 
-from scripts.generate_als_candidates import generate_als_candidates
-from scripts.generate_features import generate_features
+from scripts.als.generate_als_candidates import generate_als_candidates
+from scripts.features.generate_features import generate_features
 
 # %% Загрузка параметров
 # Временное разделение на train-, valid- и test-выборки

@@ -1,6 +1,6 @@
 import duckdb
 
-from scripts.paths import DATA_RAW_DIR, DATA_RECOMMENDATIONS_DIR
+from scripts.utils.paths import DATA_RAW_DIR, DATA_RECOMMENDATIONS_DIR
 
 def get_con():
 

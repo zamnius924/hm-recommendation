@@ -2,9 +2,9 @@ import json
 import optuna
 import pandas as pd
 
-from scripts.generate_pool import generate_pool
-from scripts.paths import DATA_PROD_DIR, MODELS_PROD_CONFIG_DIR
-from scripts.tuning_objective_ltr import tuning_objective_ltr
+from scripts.ltr.generate_pool import generate_pool
+from scripts.utils.paths import DATA_PROD_DIR, MODELS_PROD_CONFIG_DIR
+from scripts.ltr.tuning_objective_ltr import tuning_objective_ltr
 
 def run_ltr_calibration():
 

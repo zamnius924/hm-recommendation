@@ -1,9 +1,9 @@
 import datetime as dt
 import json
 
-from scripts.load_db import load_db
-from scripts.load_window_config import load_window_config
-from scripts.paths import DATA_PROD_DIR, MODELS_PROD_CONFIG_DIR
+from scripts.data.load_db import load_db
+from scripts.data.load_window_config import load_window_config
+from scripts.utils.paths import DATA_PROD_DIR, MODELS_PROD_CONFIG_DIR
 
 def run_update_windows():
 

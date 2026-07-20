@@ -2,10 +2,10 @@
 import json
 import torch
 
-from scripts.generate_tt_inference import generate_tt_inference
-from scripts.paths import DATA_PROCESSED_DIR, MODELS_DIR
+from scripts.two_tower.generate_tt_datasets import generate_tt_inference
+from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_DIR
 
-from scripts.tt_model_candidates import tt_model_candidates
+from scripts.two_tower.tt_model_candidates import tt_model_candidates
 
 # %% Загрузка
 # Временное разделение на train-, valid- и test-выборки
