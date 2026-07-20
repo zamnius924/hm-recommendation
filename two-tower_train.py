@@ -4,11 +4,11 @@ import torch
 
 from scripts.two_tower.class_loss import SymmetricCrossEntropyLoss
 from scripts.two_tower.class_towers import TwoTower
+from scripts.two_tower.generate_loader import generate_loader
 from scripts.two_tower.generate_tt_datasets import generate_tt_train
-from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_DIR
 from scripts.two_tower.tt_model_train import tt_model_train
+from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_DIR
 from torch import optim
-from torch.utils.data import DataLoader
 
 # %% Загрузка параметров
 # Временное разделение на train-, valid- и test-выборки
@@ -35,19 +35,8 @@ tt_model = TwoTower(
 criterion = SymmetricCrossEntropyLoss()
 
 # Даталоадеры
-data_loader_train = DataLoader(
-    tt_dataset_train,
-    batch_size=512,
-    shuffle=True,
-    num_workers=0
-)
-
-data_loader_test = DataLoader(
-    tt_dataset_test,
-    batch_size=512,
-    shuffle=False,
-    num_workers=0
-)
+data_loader_train = generate_loader(tt_dataset_train, mode='train')
+data_loader_test = generate_loader(tt_dataset_test, mode='eval')
 
 # Оптимизатор
 optimizer = optim.Adam(tt_model.parameters(), lr=1e-4)

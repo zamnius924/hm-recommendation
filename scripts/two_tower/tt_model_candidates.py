@@ -1,36 +1,19 @@
 import torch
 
 from scripts.two_tower.class_towers import TwoTower
-from scripts.two_tower.class_tt_data import CustomerDataset, ArticleDataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from typing import Callable
 
 def tt_model_candidates(
         tt_model: TwoTower,
-        customer_dataset: CustomerDataset,
-        article_dataset: ArticleDataset,
-        k=int,
-        num_workers: int = 0,
-        batch_size: int = 512
+        data_loader_customer: DataLoader,
+        data_loader_article: DataLoader,
+        k: int
     ):
     """
     Генерация кандидатов на основе Two Tower
     """
-
-    # Инициализация даталоадеров для покупателей и товаров
-    data_loader_customer = DataLoader(
-        customer_dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=num_workers
-    )
-    data_loader_article = DataLoader(
-        article_dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=num_workers
-    )
 
     # Построение эмбеддингов покупателей и товаров
     customer_embeddings = tt_encode(
@@ -52,8 +35,6 @@ def tt_model_candidates(
         tt_model, 
         k=k
     )
-
-    # СЮДА НУЖНО ДОБАВИТЬ ГЕНЕРАЦИЮ ФИЧЕЙ И ТАРГЕТОВ ПО БАТЧАМ
 
     return tt_candidates_idx, tt_candidates_val
 
@@ -77,15 +58,15 @@ def tt_encode(
     tt_model.eval()
 
     # Построение эмбеддингов
-    if encode_customer:
-
+    if encode_customer: # для покупателей
+        
         embeddings = batch_encoder(
             tt_model.encode_customers,
             data_loader,
             'customer'
         )
     
-    else:
+    else: # для товаров
         
         embeddings = batch_encoder(
             tt_model.encode_articles,
