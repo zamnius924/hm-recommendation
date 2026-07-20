@@ -1,18 +1,36 @@
 import torch
 
 from scripts.class_towers import TwoTower
+from scripts.class_tt_data import CustomerDataset, ArticleDataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from typing import Callable
 
 def tt_model_candidates(
         tt_model: TwoTower,
-        data_loader_customer: DataLoader,
-        data_loader_article: DataLoader,
-        k=int
+        customer_dataset: CustomerDataset,
+        article_dataset: ArticleDataset,
+        k=int,
+        num_workers: int = 0,
+        batch_size: int = 512
     ):
     """
     Генерация кандидатов на основе Two Tower
     """
+
+    # Инициализация даталоадеров для покупателей и товаров
+    data_loader_customer = DataLoader(
+        customer_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers
+    )
+    data_loader_article = DataLoader(
+        article_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers
+    )
 
     # Построение эмбеддингов покупателей и товаров
     customer_embeddings = tt_encode(
@@ -26,7 +44,7 @@ def tt_model_candidates(
         encode_customer=False
     )
 
-    # Топ-k рекомендаций для пользователей
+    # Топ-k товаров-кандидатов для пользователей
     tt_candidates_idx, tt_candidates_val = retrieve_candidates(
         customer_embeddings, 
         article_embeddings, 
@@ -34,6 +52,8 @@ def tt_model_candidates(
         tt_model, 
         k=k
     )
+
+    # СЮДА НУЖНО ДОБАВИТЬ ГЕНЕРАЦИЮ ФИЧЕЙ И ТАРГЕТОВ ПО БАТЧАМ
 
     return tt_candidates_idx, tt_candidates_val
 
@@ -77,7 +97,10 @@ def tt_encode(
 
 
 def batch_encoder(
-        encoder: TwoTower,
+        encoder: Callable[
+            [torch.Tensor, torch.Tensor], # типы аргументов функции
+            torch.Tensor # тип возвращаемого объекта
+        ],
         data_loader: DataLoader,
         tower: str
     ) -> list:
@@ -123,7 +146,7 @@ def retrieve_candidates(
     tt_candidates_val = [] # зачнения схожестей
 
     # Отбор товаров-кандидатов по батчам
-    for batch in tqdm(data_loader_customer, desc=f'Top-{k} similarity'):
+    for batch in tqdm(data_loader_customer, desc=f'Top-{k} by similarity'):
 
         # Извлечение батча покупателей
         index = batch['customer_idx'] - 1
