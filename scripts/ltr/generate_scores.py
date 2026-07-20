@@ -1,7 +1,7 @@
 import pandas as pd
 
 from tqdm import tqdm
-from scripts.generate_pool import generate_pool
+from scripts.ltr.generate_pool import generate_pool
 
 def generate_scores(con, model, batch_size):
 

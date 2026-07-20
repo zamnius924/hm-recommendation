@@ -2,7 +2,7 @@ import json
 import pandas as pd
 
 from pathlib import Path
-from scripts.paths import MODELS_PROD_CONFIG_DIR
+from scripts.utils.paths import MODELS_PROD_CONFIG_DIR
 
 def load_window_config(data_path: Path = MODELS_PROD_CONFIG_DIR):
 

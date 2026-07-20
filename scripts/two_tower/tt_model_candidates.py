@@ -1,7 +1,7 @@
 import torch
 
-from scripts.class_towers import TwoTower
-from scripts.class_tt_data import CustomerDataset, ArticleDataset
+from scripts.two_tower.class_towers import TwoTower
+from scripts.two_tower.class_tt_data import CustomerDataset, ArticleDataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from typing import Callable

@@ -1,7 +1,7 @@
 import duckdb
 
 from pathlib import Path
-from scripts.paths import DATA_RAW_DIR
+from scripts.utils.paths import DATA_RAW_DIR
 
 def load_db(data_path: Path = DATA_RAW_DIR): # db_path='data/hnm_recommendations.db'
 

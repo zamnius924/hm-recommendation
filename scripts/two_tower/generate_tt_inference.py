@@ -1,8 +1,8 @@
-from scripts.aggregate_tt_dfs import aggregate_tt_dfs
-from scripts.build_mapping import build_mapping
-from scripts.class_tt_data import CustomerDataset, ArticleDataset
-from scripts.generate_tt_dfs import generate_tt_dfs
-from scripts.load_db import load_db
+from scripts.utils.aggregate_tt_dfs import aggregate_tt_dfs
+from scripts.data.build_mapping import build_mapping
+from scripts.two_tower.class_tt_data import CustomerDataset, ArticleDataset
+from scripts.two_tower.generate_tt_dfs import generate_tt_dfs
+from scripts.data.load_db import load_db
 
 def generate_tt_inference(
         split_dates: dict

@@ -1,9 +1,9 @@
 import pandas as pd
 
-from scripts.build_logger import build_logger
-from scripts.generate_features_article import generate_features_article
-from scripts.generate_features_customer import generate_features_customer
-from scripts.row_counts import row_counts
+from scripts.utils.build_logger import build_logger
+from scripts.features.generate_features_article import generate_features_article
+from scripts.features.generate_features_customer import generate_features_customer
+from scripts.utils.row_counts import row_counts
 
 def generate_features(
         con, 

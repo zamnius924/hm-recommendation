@@ -1,12 +1,10 @@
 import logging
 import pandas as pd
 
-from scripts.build_logger import build_logger
-from scripts.generate_tt_dfs_features import generate_tt_dfs_features
-from scripts.generate_tt_dfs_pairs import generate_tt_pairs
-from scripts.load_tt_dfs_features import load_tt_dfs_features
-from scripts.load_tt_dfs_pairs import load_tt_dfs_pairs
-from scripts.row_counts import row_counts
+from scripts.features.generate_features_article import generate_features_article
+from scripts.features.generate_features_customer import generate_features_customer
+from scripts.utils.build_logger import build_logger
+from scripts.utils.row_counts import row_counts
 
 def generate_tt_dfs(
         con, 
@@ -65,6 +63,102 @@ def generate_tt_dfs(
         else:
 
             return df_customer, df_article
+
+
+
+
+# ---------------------------------------------------------------------------- #
+#                            Вспомогательные функции                           #
+# ---------------------------------------------------------------------------- #
+def generate_tt_dfs_features(
+        con, 
+        logger, 
+        split_dates: dict
+    ):
+
+    # Фичи: покупатели
+    logger.info('1. Create customer features')
+    generate_features_customer(con, split_dates)
+    row_counts(con, logger, 'customer_features')
+
+    # Фичи: товары
+    logger.info('2. Create article features')
+    generate_features_article(con, split_dates)
+    row_counts(con, logger, 'article_features')
+
+
+def generate_tt_pairs(
+        con, 
+        logger,
+        split_dates: dict
+    ):
+    """
+    Генерация пар для in-batch negative sampling:
+        - pairs хранит в себе информацию только о тех покупателях/товарах,
+          которые присутствуют и в target_window и в feature_window
+        - customer_features и article_features отфильтрованы так,
+          чтобы объекты присутствовали в target_window
+    """
+
+    logger.info('3. Create pairs')
+
+    # Создание positive pairs
+    con.execute(f"""
+        CREATE OR REPLACE TABLE pairs AS 
+
+        SELECT DISTINCT 
+            t.customer_id,
+            t.article_id
+        FROM transactions t
+        INNER JOIN customer_features c ON c.customer_id = t.customer_id
+        INNER JOIN article_features a ON a.article_id = t.article_id
+        WHERE t.t_dat BETWEEN 
+            '{split_dates['target_window_start']}' AND
+            '{split_dates['target_window_end']}'
+        ORDER BY t.customer_id, t.article_id
+    """)
+
+    # Оставялем объекты, которые есть в pairs
+    # Покупатели
+    con.execute(f"""
+        CREATE OR REPLACE TABLE customer_features AS
+        
+        SELECT *
+        FROM customer_features
+        WHERE customer_id IN (SELECT DISTINCT customer_id FROM pairs)
+    """)
+
+    # Товары
+    con.execute(f"""
+        CREATE OR REPLACE TABLE article_features AS
+        
+        SELECT *
+        FROM article_features
+        WHERE article_id IN (SELECT DISTINCT article_id FROM pairs)
+    """)
+
+
+def load_tt_dfs_features(con):
+
+    # Создание датафреймов pandas
+    df_customer = con.execute("""
+        SELECT * FROM customer_features ORDER BY customer_id
+    """).df()
+    df_article = con.execute("""
+        SELECT * FROM article_features ORDER BY article_id
+    """).df()
+
+    return df_customer, df_article
+
+
+def load_tt_dfs_pairs(con):
+
+    # Создание датафреймов pandas
+    df_pairs = con.execute("""
+        SELECT * FROM pairs ORDER BY customer_id, article_id
+    """).df()
+
+    return df_pairs
 
 
 

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from scripts.class_tt_data import TowerInfo
+from scripts.two_tower.class_tt_data import TowerInfo
 
 # ---------------------------------------------------------------------------- #
 #                                     Башня                                    #

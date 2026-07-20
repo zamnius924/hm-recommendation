@@ -2,8 +2,8 @@ import logging
 import numpy as np
 import pandas as pd
 
-from scripts.build_logger import build_logger
-from scripts.class_tt_data import AggregateData, PairData, \
+from scripts.utils.build_logger import build_logger
+from scripts.two_tower.class_tt_data import AggregateData, PairData, \
     FeatureData, Mapping
 from sklearn.preprocessing import LabelEncoder
 

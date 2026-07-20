@@ -1,6 +1,6 @@
 import numpy as np
 
-from scripts.ap_at_k import ap_at_k
+from scripts.evaluation.ap_at_k import ap_at_k
 
 def map_at_k(df, y_hat, k=12):
 

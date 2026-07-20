@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 
 from implicit.als import AlternatingLeastSquares
-from scripts.build_mapping import build_mapping
-from scripts.sparse_interaction_matrix import sparse_interaction_matrix
-from scripts.window_extraction import window_extraction
+from scripts.data.build_mapping import build_mapping
+from scripts.als.sparse_interaction_matrix import sparse_interaction_matrix
+from scripts.data.window_extraction import window_extraction
 
 def generate_als_candidates(
         con,

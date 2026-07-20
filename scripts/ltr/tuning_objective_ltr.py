@@ -1,7 +1,7 @@
 import optuna
 
 from catboost import CatBoostRanker
-from scripts.map_at_k import map_at_k
+from scripts.evaluation.map_at_k import map_at_k
 
 def tuning_objective_ltr(trial, params, pool_train, pool_valid, df_valid):
 
