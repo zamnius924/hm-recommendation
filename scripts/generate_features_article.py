@@ -67,7 +67,10 @@ def generate_features_article(
         SELECT 
             f.*,
             a.* EXCLUDE (a.article_id),
-            c.article_avg_customer_age,
+            COALESCE(
+                c.article_avg_customer_age,
+                AVG(c.article_avg_customer_age) OVER ()
+            ) AS article_avg_customer_age,
             c.article_purchase_count_18_24 / NULLIF(f.article_purchase_count, 0) AS article_purchase_share_18_24,
             c.article_purchase_count_24_34 / NULLIF(f.article_purchase_count, 0) AS article_purchase_share_24_34,
             c.article_purchase_count_34_44 / NULLIF(f.article_purchase_count, 0) AS article_purchase_share_34_44,
