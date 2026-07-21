@@ -4,7 +4,8 @@ import torch
 
 from scripts.two_tower.generate_loader import generate_loader
 from scripts.two_tower.generate_tt_datasets import generate_tt_inference
-from scripts.two_tower.tt_model_candidates import tt_model_candidates
+#from scripts.two_tower.tt_model_candidates import tt_model_candidates
+from scripts.two_tower.generate_data import generate_tt_candidates
 from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_DIR
 
 # %% Загрузка
@@ -26,10 +27,10 @@ data_loader_customer = generate_loader(customer_dataset, mode='eval')
 data_loader_article = generate_loader(article_dataset, mode='eval')
 
 # %% Генерация кандидатов
-tt_candidates_idx, tt_candidates_val = tt_model_candidates(
+candidates_df = generate_tt_candidates(
     tt_model,
     data_loader_customer,
     data_loader_article,
+    mapping,
     k=100
 )
-# %%
