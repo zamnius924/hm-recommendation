@@ -16,8 +16,8 @@ def build_mapping(*dfs) -> dict:
             article_series.append(df['article_id'])
 
     # Все уникальные покупатели и товары
-    all_customers = pd.concat(customer_series).unique()
-    all_articles = pd.concat(article_series).unique()
+    all_customers = sorted(pd.concat(customer_series).unique())
+    all_articles = sorted(pd.concat(article_series).unique())
 
     # Словари для отображения индетификаторов в индексы
     customer_id2index = {

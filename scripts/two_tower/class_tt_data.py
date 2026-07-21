@@ -166,8 +166,8 @@ class TwoTowerDataset(Dataset):
     def __getitem__(self, index):
 
         # Выделение индексов покупателя и товары из пары
-        index_customer = self.pair_customer_id[index] - 1
-        index_article = self.pair_article_id[index] - 1
+        index_customer = self.pair_customer_id[index]
+        index_article = self.pair_article_id[index]
 
         # Тензоры с данными о фичах
         customer_num, customer_cat = self.customers.get(index_customer)
