@@ -130,7 +130,7 @@ def retrieve_candidates(
     for batch in tqdm(data_loader_customer, desc=f'Top-{k} by similarity'):
 
         # Извлечение батча покупателей
-        index = batch['customer_idx'] - 1
+        index = batch['customer_idx']
         customer_batch = customer_embeddings[index]
 
         # Скалярные произведения на батче

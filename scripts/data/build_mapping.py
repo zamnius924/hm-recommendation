@@ -16,26 +16,26 @@ def build_mapping(*dfs) -> dict:
             article_series.append(df['article_id'])
 
     # Все уникальные покупатели и товары
-    all_customers = pd.concat(customer_series).unique()
-    all_articles = pd.concat(article_series).unique()
+    all_customers = sorted(pd.concat(customer_series).unique())
+    all_articles = sorted(pd.concat(article_series).unique())
 
     # Словари для отображения индетификаторов в индексы
     customer_id2index = {
-        customer_id: (i + 1) 
+        customer_id: i 
         for i, customer_id in enumerate(all_customers)
     }
     article_id2index = {
-        article_id: (i + 1)
+        article_id: i
         for i, article_id in enumerate(all_articles)
     }
 
     # Словари для отображения индексов в идентификаторы (обратные словари)
     customer_index2id = {
-        (i + 1): customer_id
+        i: customer_id
         for customer_id, i in customer_id2index.items()
     }
     article_index2id = {
-        (i + 1): article_id
+        i: article_id
         for article_id, i in article_id2index.items()
     }
 
