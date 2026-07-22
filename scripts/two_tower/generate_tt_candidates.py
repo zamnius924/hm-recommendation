@@ -47,6 +47,7 @@ def generate_tt_candidates(
 # ---------------------------------------------------------------------------- #
 #                            Вспомогательные функции                           #
 # ---------------------------------------------------------------------------- #
+# -------------------------------- 1) Энкодинг ------------------------------- #
 @torch.inference_mode()
 def tt_encode(
         tt_model: TwoTower,
@@ -109,6 +110,7 @@ def batch_encoder(
     return embeddings
 
 
+# --------------------- 2) Датафрейм с парами кандидатов --------------------- #
 def tt_ranking(
         customer_embeddings: torch.Tensor, 
         article_embeddings: torch.Tensor,
@@ -177,7 +179,7 @@ def top_candidates(
     """
 
     # Извлечение батча покупателей
-    index = batch['customer_idx'] - 1
+    index = batch['customer_idx']
     customer_batch = customer_embeddings[index]
 
     # Скалярные произведения на батче
