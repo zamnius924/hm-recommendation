@@ -1,12 +1,16 @@
 from airflow import DAG
-from airflow.operators.bash import BashOperator
+from airflow.providers.standard.operators.bash import BashOperator
 from datetime import datetime, timedelta
+from pathlib import Path
+
+# Корень проекта
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 with DAG(
 
     # ------------------------------- Параметры DAG ------------------------------ #
-    dag_id='recommend_dag', # название DAG
-    description='Train recommendations model', # описание DAG
+    dag_id='calibrate_dag', # название DAG
+    description='Calibrate recommendations model', # описание DAG
     schedule="@weekly", # как часто запускать DAG
     start_date=datetime(2026, 1, 1), # дата начала DAG
     catchup=False, # запускать ли DAG за пропущенные интервалы
@@ -17,7 +21,8 @@ with DAG(
         'email_on_failure': False, # писать ли при провале
         'email_on_retry': False, # писать ли при автоматическом перезапуске по провалу
         'retries': 3, # сколько раз пытаться запустить, далее помечать как failed
-        'retry_delay': timedelta(minutes=5) # сколько ждать между перезапусками
+        'retry_delay': timedelta(minutes=5), # сколько ждать между перезапусками
+        'cwd': str(PROJECT_ROOT) # запускать раннеры из корня проекта
     }
 
 ) as dag:
@@ -26,25 +31,25 @@ with DAG(
     # Таска 1: определение окон для тренировочной, валидационной и тестовой выборок
     t1 = BashOperator(
         task_id='update_windows',
-        bash_command='python pipeline/run_update_windows.py'
+        bash_command='PYTHONPATH=. python orchestration/pipeline/run_update_windows.py'
     )
 
     # Таска 2: калибровка ALS
     t2 = BashOperator(
         task_id='calibrate_als',
-        bash_command='python pipeline/run_als_calibration.py'
+        bash_command='PYTHONPATH=. python orchestration/pipeline/run_als_calibration.py'
     )
 
     # Таска 3: создание кандидатов ALS и фичей
     t3 = BashOperator(
         task_id='feature_engineering',
-        bash_command='python pipeline/run_feature_engineering.py --mode calibration'
+        bash_command='PYTHONPATH=. python orchestration/pipeline/run_feature_engineering.py --mode calibration'
     )
 
     # Таска 4: калибровка LTR
     t4 = BashOperator(
         task_id='calibrate_ltr',
-        bash_command='python pipeline/run_ltr_calibration.py'
+        bash_command='PYTHONPATH=. python orchestration/pipeline/run_ltr_calibration.py'
     )
     
     # ------------------------------------ DAG ----------------------------------- #

@@ -1,6 +1,10 @@
 from airflow import DAG
-from airflow.operators.bash import BashOperator
+from airflow.providers.standard.operators.bash import BashOperator
 from datetime import datetime, timedelta
+from pathlib import Path
+
+# Корень проекта
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 with DAG(
 
@@ -17,7 +21,8 @@ with DAG(
         'email_on_failure': False, # писать ли при провале
         'email_on_retry': False, # писать ли при автоматическом перезапуске по провалу
         'retries': 3, # сколько раз пытаться запустить, далее помечать как failed
-        'retry_delay': timedelta(minutes=5) # сколько ждать между перезапусками
+        'retry_delay': timedelta(minutes=5), # сколько ждать между перезапусками
+        'cwd': str(PROJECT_ROOT) # запускать раннеры из корня проекта
     }
 
 ) as dag:
@@ -26,25 +31,25 @@ with DAG(
     # Таска 1: определение окон для тренировочной, валидационной и тестовой выборок
     t1 = BashOperator(
         task_id='update_windows',
-        bash_command='python pipeline/run_update_windows.py'
+        bash_command='PYTHONPATH=. python orchestration/pipeline/run_update_windows.py'
     )
 
     # Таска 2: создание кандидатов ALS и фичей
     t2 = BashOperator(
         task_id='feature_engineering',
-        bash_command='python pipeline/run_feature_engineering.py --mode production'
+        bash_command='PYTHONPATH=. python orchestration/pipeline/run_feature_engineering.py --mode production'
     )
 
     # Таска 3: обучение модели LTR
     t3 = BashOperator(
         task_id='fit_ltr',
-        bash_command='python pipeline/run_ltr_fit.py'
+        bash_command='PYTHONPATH=. python orchestration/pipeline/run_ltr_fit.py'
     )
 
     # Таска 4: генерация рекомендация и загрузка их в БД
     t4 = BashOperator(
         task_id='generate_recommendations',
-        bash_command='python pipeline/run_recommendations.py'
+        bash_command='PYTHONPATH=. python orchestration/pipeline/run_recommendations.py'
     )
 
     # ------------------------------------ DAG ----------------------------------- #

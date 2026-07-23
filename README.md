@@ -43,17 +43,17 @@ The pipeline is built around a sliding‑window temporal split and produces a ra
 ├── 05_ltr_fit.py               # train final model & evaluate
 ├── 06_recommendations.py       # generate final recommendations for API
 │
-├── dags/                        # Airflow DAGs
-│   ├── calibrate_dag.py         # hyperparameter calibration
-│   └── recommend_dag.py         # daily retraining & inference
-│
-├── pipeline/                   # production‑ready entry points (used by Airflow)
-│   ├── run_update_windows.py
-│   ├── run_als_calibration.py
-│   ├── run_feature_engineering.py
-│   ├── run_ltr_calibration.py
-│   ├── run_ltr_fit.py
-│   └── run_recommendations.py
+├── orchestration/               # Airflow orchestration (dags + production runners)
+│   ├── dags/                    # Airflow DAGs
+│   │   ├── calibrate_dag.py     # hyperparameter calibration
+│   │   └── recommend_dag.py     # daily retraining & inference
+│   └── pipeline/                # production‑ready entry points (called by the DAGs)
+│       ├── run_update_windows.py
+│       ├── run_als_calibration.py
+│       ├── run_feature_engineering.py
+│       ├── run_ltr_calibration.py
+│       ├── run_ltr_fit.py
+│       └── run_recommendations.py
 │
 ├── requirements.txt
 ├── README.md
@@ -153,12 +153,21 @@ All models and parameters will be saved in the `models/` folder, and the final r
 
 The project includes two production Airflow DAGs for automated retraining.
 
-Run Airflow in project-local mode:
+Run Airflow in project-local mode (execute from the repository root):
 ```bash
-export AIRFLOW_HOME=$(pwd)/.airflow
-export AIRFLOW__CORE__DAGS_FOLDER=$(pwd)/dags
+export AIRFLOW_HOME="$PWD/.airflow"
+export AIRFLOW__CORE__DAGS_FOLDER="$PWD/orchestration/dags"
+export AIRFLOW__CORE__LOAD_EXAMPLES=False
 airflow standalone
 ```
+> The `export`s must come **before** `airflow standalone`: a process reads its
+> environment at startup, so Airflow picks up `AIRFLOW_HOME` (where to create/read
+> `.airflow`) and the `AIRFLOW__CORE__*` overrides only if they are already set.
+> These `AIRFLOW__SECTION__KEY` variables override settings at runtime and are **not**
+> written to `airflow.cfg` — the file keeps its defaults, but the effective value is
+> the env one (env > `airflow.cfg` > built-in defaults). Verify with
+> `airflow config get-value core dags_folder`.
+
 Then open:
 ```
 http://localhost:8080
