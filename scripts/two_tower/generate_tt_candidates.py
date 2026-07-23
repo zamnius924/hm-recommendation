@@ -2,20 +2,26 @@ import pandas as pd
 import torch
 
 from scripts.two_tower.class_towers import TwoTower
+from scripts.two_tower.class_tt_data import CandidateDataset, Mapping
+from scripts.two_tower.generate_loader import generate_loader
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from typing import Callable
 
 def generate_tt_candidates(
         tt_model: TwoTower,
-        data_loader_customer: DataLoader,
-        data_loader_article: DataLoader,
-        mapping: dict,
+        candidates: CandidateDataset,
         k: int
     ):
     """
     Генерация кандидатов на основе результатов Two Tower
     """
+
+    # Инициализация даталоадеров для покупателей и товаров
+    data_loader_customer = generate_loader(candidates.customer, 
+                                           mode='eval')
+    data_loader_article = generate_loader(candidates.article, 
+                                          mode='eval')
 
     # Построение эмбеддингов покупателей и товаров
     customer_embeddings = tt_encode(
@@ -35,7 +41,7 @@ def generate_tt_candidates(
         article_embeddings, 
         data_loader_customer, 
         tt_model, 
-        mapping,
+        candidates.mapping,
         k=k
     )
 
@@ -116,7 +122,7 @@ def tt_ranking(
         article_embeddings: torch.Tensor,
         data_loader_customer: DataLoader,
         tt_model: TwoTower,
-        mapping: dict,
+        mapping: Mapping,
         k: int
     ) -> pd.DataFrame:
 
@@ -144,8 +150,8 @@ def tt_ranking(
         article_idx = top_k.indices.reshape(-1)
 
         # Перевод индексов в идентификаторы
-        customer_id = [mapping['customer_index2id'][i.item()] for i in customer_idx]
-        article_id = [mapping['article_index2id'][i.item()] for i in article_idx]
+        customer_id = [mapping.customer_index2id[i.item()] for i in customer_idx]
+        article_id = [mapping.article_index2id[i.item()] for i in article_idx]
         
         # Скоры (приведены к векторам)
         scores = top_k.values.reshape(-1)

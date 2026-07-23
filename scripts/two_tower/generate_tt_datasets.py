@@ -6,7 +6,7 @@ from scripts.data.load_db import load_db
 from scripts.features.generate_features_article import generate_features_article
 from scripts.features.generate_features_customer import generate_features_customer
 from scripts.two_tower.class_tt_data import TwoTowerDataset, TowerInfo ,\
-    CustomerDataset, ArticleDataset
+    CustomerDataset, ArticleDataset, CandidateDataset
 from scripts.utils.aggregate_tt_dfs import aggregate_tt_dfs
 from scripts.utils.build_logger import build_logger
 from scripts.utils.row_counts import row_counts
@@ -49,7 +49,7 @@ def generate_tt_train(
 
 def generate_tt_inference(
         split_dates: dict
-    ) -> tuple[CustomerDataset, ArticleDataset, dict]:
+    ) -> CandidateDataset:
 
     # --------------- Создание датафреймов с фичами и индексами пар -------------- #
     # Подключение к БД
@@ -74,11 +74,15 @@ def generate_tt_inference(
                                  None, 
                                  mapping,
                                  pairs=False)
-    
-    customer_dataset = CustomerDataset(aggr_data.customers)
-    article_dataset = ArticleDataset(aggr_data.articles)
 
-    return customer_dataset, article_dataset, mapping
+    # Данные по покупателям и товарам
+    candidate_dataset = CandidateDataset(
+        customer_dataset=CustomerDataset(aggr_data.customers),
+        article_dataset=ArticleDataset(aggr_data.articles),
+        mapping=aggr_data.mapping
+    )
+
+    return candidate_dataset
 
 
 

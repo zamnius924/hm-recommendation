@@ -128,6 +128,21 @@ class ArticleDataset(FeatureDataset):
         }
 
 
+class CandidateDataset:
+
+    # ------------------------------- Инициализация ------------------------------ #
+    def __init__(
+            self,
+            customer_dataset: CustomerDataset,
+            article_dataset: ArticleDataset,
+            mapping: Mapping
+        ):
+
+        self.customer = customer_dataset
+        self.article = article_dataset
+        self.mapping = mapping
+
+
 
 
 # ---------------------------------------------------------------------------- #
