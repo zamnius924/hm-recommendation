@@ -50,7 +50,7 @@ con = generate_features(con,
 
 # %% Сохранение таблицы
 save_db(con, 
-        'tt_df_train.parquet', 
+        'df_train.parquet', 
         path_dir=DATA_PROCESSED_MOD2_DIR)
 
 # %% Отключение от БД
