@@ -4,6 +4,7 @@ import json
 from scripts.als.generate_als_candidates import generate_als_candidates
 from scripts.features.generate_features import generate_features
 from scripts.data.load_db import load_db
+from scripts.utils.optimize_dtypes import optimize_dtypes
 from scripts.utils.paths import DATA_PROD_DIR, MODELS_PROD_CONFIG_DIR
 
 
@@ -21,8 +22,8 @@ def build_dataset(con, dates: dict, sample: str, als_best_params: dict):
 def save_dataset(df, sample: str):
     
     # Сохранение датасета
-    df.to_parquet(DATA_PROD_DIR / f'df_{sample}.parquet', 
-                  engine='pyarrow', index=False)
+    optimize_dtypes(df).to_parquet(DATA_PROD_DIR / f'df_{sample}.parquet',
+                  engine='pyarrow', index=False, compression='zstd')
     
 
 def run_feature_engineering(mode: str):

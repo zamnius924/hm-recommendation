@@ -7,6 +7,7 @@ from scripts.features.generate_features import generate_features
 from scripts.ltr.generate_scores import generate_scores
 from scripts.data.load_db import load_db
 from scripts.data.load_window_config import load_window_config
+from scripts.utils.optimize_dtypes import optimize_dtypes
 from scripts.utils.paths import DATA_PROD_DIR, MODELS_PROD_DIR, MODELS_PROD_CONFIG_DIR
 
 def run_recommendations():
@@ -61,8 +62,8 @@ def run_recommendations():
 
     # -------------------------- Сохранение и отключение ------------------------- #
     # Сохранение рекомендаций
-    df_rec.to_parquet(DATA_PROD_DIR / 'df_rec.parquet',
-                      engine='pyarrow', index=False)
+    optimize_dtypes(df_rec).to_parquet(DATA_PROD_DIR / 'df_rec.parquet',
+                      engine='pyarrow', index=False, compression='zstd')
     
     # Отключение от БД
     con.close()

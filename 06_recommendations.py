@@ -7,6 +7,7 @@ from scripts.als.generate_als_candidates import generate_als_candidates
 from scripts.features.generate_features import generate_features
 from scripts.ltr.generate_scores import generate_scores
 from scripts.data.load_db import load_db
+from scripts.utils.optimize_dtypes import optimize_dtypes
 from scripts.utils.paths import DATA_PROCESSED_DIR, DATA_RECOMMENDATIONS_DIR, MODELS_DIR, MODELS_CONFIG_DIR
 
 # %% Development: Перезапуск 
@@ -74,5 +75,5 @@ df_rec = generate_scores(con, model, 5000)
 con.close()
 
 # %% Сохранение рекомендаций
-df_rec.to_parquet(DATA_RECOMMENDATIONS_DIR / 'df_rec.parquet',
-                  engine='pyarrow', index=False)
+optimize_dtypes(df_rec).to_parquet(DATA_RECOMMENDATIONS_DIR / 'df_rec.parquet',
+                  engine='pyarrow', index=False, compression='zstd')
