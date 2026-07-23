@@ -4,7 +4,7 @@ import optuna
 import pandas as pd
 
 from scripts.ltr.generate_pool import generate_pool
-from scripts.utils.paths import DATA_PROCESSED_MOD1_DIR, MODELS_CONFIG_DIR
+from scripts.utils.paths import DATA_PROCESSED_MOD1_DIR, MODELS_MOD1_CONFIG_DIR
 from scripts.ltr.tuning_objective_ltr import tuning_objective_ltr
 
 # %% Импорт данных
@@ -50,5 +50,5 @@ ltr_best_params = {
     'fit': params['fit']
 }
 
-with open(file=MODELS_CONFIG_DIR / 'ltr_best_params.json', mode='w') as file:
+with open(file=MODELS_MOD1_CONFIG_DIR / 'ltr_best_params.json', mode='w') as file:
     json.dump(ltr_best_params, file, indent=4)

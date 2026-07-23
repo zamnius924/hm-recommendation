@@ -5,7 +5,7 @@ import pandas as pd
 from catboost import CatBoostRanker
 from scripts.ltr.generate_pool import generate_pool
 from scripts.evaluation.map_at_k import map_at_k
-from scripts.utils.paths import DATA_PROCESSED_MOD1_DIR, MODELS_DIR, MODELS_CONFIG_DIR
+from scripts.utils.paths import DATA_PROCESSED_MOD1_DIR, MODELS_MOD1_DIR, MODELS_MOD1_CONFIG_DIR
 
 # %% Импорт
 # Загрузка данных
@@ -13,7 +13,7 @@ df_train = pd.read_parquet(DATA_PROCESSED_MOD1_DIR / 'df_train.parquet', engine=
 df_test = pd.read_parquet(DATA_PROCESSED_MOD1_DIR / 'df_test.parquet', engine='pyarrow')
 
 # Загрузка параметров
-with open(file=MODELS_CONFIG_DIR / 'ltr_best_params.json', mode='r') as file:
+with open(file=MODELS_MOD1_CONFIG_DIR / 'ltr_best_params.json', mode='r') as file:
     ltr_best_params = json.load(file)
 
 # %% Создание пулов
@@ -57,12 +57,12 @@ model.plot_tree(tree_idx=0)
 
 # %% Сохранение
 # Модель
-model.save_model(MODELS_DIR / 'ltr_model.cbm')
+model.save_model(MODELS_MOD1_DIR / 'ltr_model.cbm')
 
 # Параметры модели
 model_info = {
     'map12': map_at_k(df_test, model.predict(pool_test)),
     'best_iteration': model.get_best_iteration()
 }
-with open(file=MODELS_DIR / 'ltr_model_info.json', mode='w') as file:
+with open(file=MODELS_MOD1_DIR / 'ltr_model_info.json', mode='w') as file:
     json.dump(model_info, file, indent=4)

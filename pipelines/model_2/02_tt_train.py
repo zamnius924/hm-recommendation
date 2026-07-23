@@ -7,7 +7,7 @@ from scripts.two_tower.class_towers import TwoTower
 from scripts.two_tower.generate_loader import generate_loader
 from scripts.two_tower.generate_tt_datasets import generate_tt_train
 from scripts.two_tower.tt_model_train import tt_model_train
-from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_DIR
+from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_MOD2_DIR
 from torch import optim
 
 # %% Загрузка параметров
@@ -55,4 +55,4 @@ tt_model_train(
 )
 
 # %% Сохранение модели
-torch.save(obj=tt_model, f=MODELS_DIR / 'tt_model.pt')
+torch.save(obj=tt_model, f=MODELS_MOD2_DIR / 'tt_model.pt')

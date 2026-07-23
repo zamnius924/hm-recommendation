@@ -7,7 +7,7 @@ from scripts.features.generate_features import generate_features
 from scripts.data.load_db import load_db
 from scripts.utils.optimize_dtypes import optimize_dtypes
 from scripts.utils.paths import DATA_PROCESSED_DIR, DATA_PROCESSED_MOD1_DIR, \
-    MODELS_CONFIG_DIR
+    MODELS_MOD1_CONFIG_DIR
 
 # %% Development: Перезапуск 
 import importlib
@@ -26,7 +26,7 @@ with open(file=DATA_PROCESSED_DIR / 'split_dates.json', mode='r') as file:
     dates = json.load(file)
 
 # Оптимальные параметры ALS
-with open(file=MODELS_CONFIG_DIR / 'als_best_params.json', mode='r') as file:
+with open(file=MODELS_MOD1_CONFIG_DIR / 'als_best_params.json', mode='r') as file:
     als_best_params = json.load(file)
 
 # %% Подключение к БД

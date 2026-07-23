@@ -9,7 +9,7 @@ from scripts.two_tower.generate_loader import generate_loader
 from scripts.two_tower.generate_tt_candidates import generate_tt_candidates
 from scripts.two_tower.generate_tt_datasets import generate_tt_inference
 from scripts.utils.paths import DATA_PROCESSED_DIR, DATA_PROCESSED_MOD2_DIR, \
-    MODELS_DIR
+    MODELS_MOD2_DIR
 
 # %% Импорт
 # Временное разделение на train-, valid- и test-выборки
@@ -18,7 +18,7 @@ with open(file=DATA_PROCESSED_DIR / 'split_dates.json', mode='r') as file:
 
 # Загрузка модели Two-tower
 tt_model = torch.load(
-    f=MODELS_DIR / 'tt_model.pt',
+    f=MODELS_MOD2_DIR / 'tt_model.pt',
     weights_only=False
 )
 

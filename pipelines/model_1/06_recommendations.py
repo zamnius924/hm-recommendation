@@ -8,7 +8,7 @@ from scripts.features.generate_features import generate_features
 from scripts.ltr.generate_scores import generate_scores
 from scripts.data.load_db import load_db
 from scripts.utils.optimize_dtypes import optimize_dtypes
-from scripts.utils.paths import DATA_PROCESSED_DIR, DATA_RECOMMENDATIONS_DIR, MODELS_DIR, MODELS_CONFIG_DIR
+from scripts.utils.paths import DATA_PROCESSED_DIR, DATA_REC_MOD1_DIR, MODELS_MOD1_DIR, MODELS_MOD1_CONFIG_DIR
 
 # %% Development: Перезапуск 
 import importlib
@@ -33,12 +33,12 @@ with open(file=DATA_PROCESSED_DIR / 'split_dates.json', mode='r') as file:
     dates = json.load(file)
 
 # Загрузка параметров: калибровка ALS
-with open(file=MODELS_CONFIG_DIR / 'als_best_params.json', mode='r') as file:
+with open(file=MODELS_MOD1_CONFIG_DIR / 'als_best_params.json', mode='r') as file:
     als_best_params = json.load(file)
 
 # Загрузка модели
 model = CatBoostRanker()
-model.load_model(MODELS_DIR / 'ltr_model.cbm')
+model.load_model(MODELS_MOD1_DIR / 'ltr_model.cbm')
 
 # %% Подключение к БД
 con = load_db()
@@ -75,5 +75,5 @@ df_rec = generate_scores(con, model, 5000)
 con.close()
 
 # %% Сохранение рекомендаций
-optimize_dtypes(df_rec).to_parquet(DATA_RECOMMENDATIONS_DIR / 'df_rec.parquet',
+optimize_dtypes(df_rec).to_parquet(DATA_REC_MOD1_DIR / 'df_rec.parquet',
                   engine='pyarrow', index=False, compression='zstd')

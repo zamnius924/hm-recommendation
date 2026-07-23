@@ -5,7 +5,7 @@ import optuna
 from scripts.als.tuning_objective_als import tuning_objective_als
 from scripts.data.build_mapping import build_mapping
 from scripts.data.load_db import load_db
-from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR
+from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_MOD1_CONFIG_DIR
 from scripts.als.sparse_interaction_matrix import sparse_interaction_matrix
 from scripts.data.window_extraction import window_extraction
 
@@ -66,7 +66,7 @@ print(f"Best MAP@{n_recommendation}: {study.best_value:.4f}")
 als_best_params = study.best_params
 als_best_params['K'] = n_recommendation
 
-with open(file=MODELS_CONFIG_DIR / 'als_best_params.json', mode='w') as file:
+with open(file=MODELS_MOD1_CONFIG_DIR / 'als_best_params.json', mode='w') as file:
     json.dump(als_best_params, file, indent=4)
 
 # %% Отключение от БД
