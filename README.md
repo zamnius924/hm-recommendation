@@ -1,12 +1,13 @@
 # H&M Personalized Fashion Recommendations
 
-![Python](https://img.shields.io/badge/Python-3.13-blue)
-![Airflow](https://img.shields.io/badge/Airflow-3.2-red)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.138-green)
-![CatBoost](https://img.shields.io/badge/CatBoost-LTR-orange)
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.12-EE4C2C?logo=pytorch&logoColor=white)
 ![Implicit ALS](https://img.shields.io/badge/Implicit-ALS-lightgrey)
-![Optuna](https://img.shields.io/badge/Optuna-HPO-purple)
-![DuckDB](https://img.shields.io/badge/DuckDB-SQL-yellow)
+![CatBoost](https://img.shields.io/badge/CatBoost-LTR-F5A623)
+![Optuna](https://img.shields.io/badge/Optuna-HPO-8A2BE2)
+![Airflow](https://img.shields.io/badge/Airflow-3.2-017CEE?logo=apacheairflow&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.138-009688?logo=fastapi&logoColor=white)
+![DuckDB](https://img.shields.io/badge/DuckDB-SQL-FFF000?logo=duckdb&logoColor=black)
 
 Production-ready recommendation system combining collaborative filtering, learning-to-rank, Airflow orchestration, and FastAPI serving.
 
@@ -32,16 +33,23 @@ The pipeline is built around a sliding‑window temporal split and produces a ra
 3. **CatBoost Ranker** (LTR) learns to re‑rank the candidates using the engineered features and a binary target (purchased in the next week).  
 4. The final model is served through a lightweight **FastAPI** application that loads pre‑computed recommendations from Parquet.
 
+The project hosts **two retrieval models sharing the LTR reranking stage**, organised as `pipelines/model_1` (ALS) and `pipelines/model_2` (Two-Tower neural encoder). The steps above describe model 1; model 2 swaps the ALS candidate generator for a two-tower model and reuses the same LTR stage. Model 1 is the complete, served pipeline; model 2's LTR stages are still in progress.
+
 ## 🗂️ Project Structure
 
 ```
 │
-├── 01_loader.py                # create temporal split dates
-├── 02_als_calibration.py       # tune ALS hyperparameters
-├── 03_feature_engineering.py   # generate candidates + features for all splits
-├── 04_ltr_calibration.py       # tune CatBoost hyperparameters
-├── 05_ltr_fit.py               # train final model & evaluate
-├── 06_recommendations.py       # generate final recommendations for API
+├── pipelines/                   # entry scripts (# %% cells), split per model
+│   ├── 01_loader.py             # shared: temporal split dates
+│   ├── model_1/                 # ALS → LTR
+│   │   ├── 02_als_calibration.py
+│   │   ├── 03_feature_engineering.py
+│   │   ├── 04_ltr_calibration.py
+│   │   ├── 05_ltr_fit.py
+│   │   └── 06_recommendations.py
+│   └── model_2/                 # Two-Tower → LTR (WIP: LTR stages pending)
+│       ├── 02_tt_train.py
+│       └── 03_feature_engineering.py
 │
 ├── orchestration/               # Airflow orchestration (dags + production runners)
 │   ├── dags/                    # Airflow DAGs
@@ -72,39 +80,33 @@ The pipeline is built around a sliding‑window temporal split and produces a ra
 │   │   ├── transactions_train.parquet
 │   │   ├── articles.parquet
 │   │   └── customers.parquet
-│   ├── processed/              # intermediate datasets (local development)
-│   ├── production/             # datasets used for model retraining (Airflow)
+│   ├── processed/              # intermediate datasets (dev)
+│   │   ├── model_1/            # ALS candidates + LTR features
+│   │   └── model_2/            # Two-Tower candidates + LTR features
+│   ├── production/             # datasets used for retraining (Airflow)
 │   └── recommendations/        # pre‑computed recommendations for API
 │
 ├── models/
-│   ├── config/                 # hyperparameter configs (dev)
-│   │   ├── als_best_params.json
-│   │   ├── ltr_best_params.json
-│   │   └── window_config.json
-│   └── production/             # production models & configs
+│   ├── config/                 # shared config (window_config.json)
+│   ├── model_1/                # ALS → LTR artifacts
+│   │   ├── config/             # als_best_params.json, ltr_best_params.json
+│   │   ├── ltr_model.cbm
+│   │   └── ltr_model_info.json
+│   ├── model_2/                # Two-Tower artifacts
+│   │   ├── config/
+│   │   └── tt_model.pt
+│   └── production/             # production models & configs (Airflow)
 │       ├── config/
-│       │   ├── als_best_params.json
-│       │   ├── ltr_best_params.json
-│       │   └── window_config.json
-│       ├── ltr_model.cbm
-│       └── ltr_model_info.json
+│       └── ltr_model.cbm
 │
-└── scripts/                    # reusable modules
-    ├── __init__.py
-    ├── ap_at_k.py
-    ├── build_mapping.py
-    ├── generate_als_candidates.py
-    ├── generate_features.py
-    ├── generate_pool.py
-    ├── generate_scores.py
-    ├── load_db.py
-    ├── load_window_config.py
-    ├── map_at_k.py
-    ├── paths.py
-    ├── sparse_interaction_matrix.py
-    ├── tuning_objective_als.py
-    ├── tuning_objective_ltr.py
-    └── window_extraction.py
+└── scripts/                    # reusable library modules (model-agnostic)
+    ├── als/                    # ALS candidates, sparse matrix, tuning
+    ├── two_tower/              # towers, datasets, candidates, loss
+    ├── ltr/                    # pool, scores, LTR tuning
+    ├── features/               # customer / article / cross features
+    ├── data/                   # DB load/save, windows, mapping
+    ├── evaluation/             # map@k, ap@k
+    └── utils/                  # paths, dtypes, logger
 ```
 
 ## 🚀 Getting Started
@@ -136,18 +138,29 @@ Place the `.parquet` files inside `data/raw/`:
 
 ### 4. Run the training pipeline
 
-Execute the scripts in order:
+Both model pipelines share the loader (`01_loader.py`) and the LTR reranking stage. Run the `# %%` scripts in order, from the repository root.
 
+**Shared**
 ```bash
-python 01_loader.py              # split dates
-python 02_als_calibration.py     # tune ALS
-python 03_feature_engineering.py # generate candidates & features
-python 04_ltr_calibration.py     # tune LTR
-python 05_ltr_fit.py             # train final model
-python 06_recommendations.py     # create recommendations for API
+python pipelines/01_loader.py                      # temporal split dates
 ```
 
-All models and parameters will be saved in the `models/` folder, and the final recommendations table will be stored as `data/recommendations/df_rec.parquet`.
+**Model 1 — ALS → LTR**
+```bash
+python pipelines/model_1/02_als_calibration.py     # tune ALS
+python pipelines/model_1/03_feature_engineering.py # ALS candidates + features
+python pipelines/model_1/04_ltr_calibration.py     # tune LTR
+python pipelines/model_1/05_ltr_fit.py             # train final ranker
+python pipelines/model_1/06_recommendations.py     # recommendations for API
+```
+
+**Model 2 — Two-Tower → LTR** (retrieval stages; LTR stages WIP)
+```bash
+python pipelines/model_2/02_tt_train.py            # train two-tower encoder
+python pipelines/model_2/03_feature_engineering.py # TT candidates + features
+```
+
+Per-model artifacts are saved under `models/model_1/` and `models/model_2/`, while the shared `window_config.json` stays in `models/config/`. Model 1's recommendations are written to `data/recommendations/model_1/df_rec.parquet` — the table the API serves.
 
 ### 5. Start Airflow (optional)
 
@@ -294,7 +307,7 @@ Runs on a **daily** schedule to retrain the model and generate fresh recommendat
 
 ### Production vs Development Separation
 
-- **Development** (`models/config/`, `data/processed/`): Local experimentation and one‑time runs  
+- **Development** (`pipelines/`, `models/model_1|2/`, `data/processed/model_1|2/`): Local experimentation and one‑time runs  
 - **Production** (`models/production/`, `data/production/`): Airflow‑managed retraining with separate configs and datasets
 
 This ensures that the automated pipeline doesn't interfere with ongoing experimentation.
