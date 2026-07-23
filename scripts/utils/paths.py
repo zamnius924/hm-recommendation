@@ -15,7 +15,16 @@ DATA_RECOMMENDATIONS_DIR = DATA_DIR / 'recommendations'
 DATA_PROCESSED_MOD1_DIR = DATA_PROCESSED_DIR / 'model_1'
 DATA_PROCESSED_MOD2_DIR = DATA_PROCESSED_DIR / 'model_2'
 
+DATA_REC_MOD1_DIR = DATA_RECOMMENDATIONS_DIR / 'model_1'
+DATA_REC_MOD2_DIR = DATA_RECOMMENDATIONS_DIR / 'model_2'
+
 # ---------------------------------- Models ---------------------------------- #
 MODELS_CONFIG_DIR = MODELS_DIR / 'config'
 MODELS_PROD_DIR = MODELS_DIR / 'production'
 MODELS_PROD_CONFIG_DIR = MODELS_PROD_DIR / 'config'
+
+# Модель-специфичные артефакты и их конфиги
+MODELS_MOD1_DIR = MODELS_DIR / 'model_1'
+MODELS_MOD2_DIR = MODELS_DIR / 'model_2'
+MODELS_MOD1_CONFIG_DIR = MODELS_MOD1_DIR / 'config'
+MODELS_MOD2_CONFIG_DIR = MODELS_MOD2_DIR / 'config'

@@ -1,6 +1,6 @@
 import duckdb
 
-from scripts.utils.paths import DATA_RAW_DIR, DATA_RECOMMENDATIONS_DIR
+from scripts.utils.paths import DATA_RAW_DIR, DATA_REC_MOD1_DIR
 
 def get_con():
 
@@ -9,7 +9,7 @@ def get_con():
 
     # Словарь с названиями таблиц и путями к данным
     datasets = {
-        'recommendations': DATA_RECOMMENDATIONS_DIR / 'df_rec.parquet',
+        'recommendations': DATA_REC_MOD1_DIR / 'df_rec.parquet',
         'articles': DATA_RAW_DIR / 'articles.parquet',
         'customers': DATA_RAW_DIR / 'customers.parquet'
     }
