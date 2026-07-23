@@ -4,12 +4,12 @@ import optuna
 import pandas as pd
 
 from scripts.ltr.generate_pool import generate_pool
-from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_CONFIG_DIR
+from scripts.utils.paths import DATA_PROCESSED_MOD1_DIR, MODELS_CONFIG_DIR
 from scripts.ltr.tuning_objective_ltr import tuning_objective_ltr
 
 # %% Импорт данных
-df_train = pd.read_parquet(DATA_PROCESSED_DIR / 'df_train.parquet', engine='pyarrow')
-df_valid = pd.read_parquet(DATA_PROCESSED_DIR / 'df_valid.parquet', engine='pyarrow')
+df_train = pd.read_parquet(DATA_PROCESSED_MOD1_DIR / 'df_train.parquet', engine='pyarrow')
+df_valid = pd.read_parquet(DATA_PROCESSED_MOD1_DIR / 'df_valid.parquet', engine='pyarrow')
 
 # %% Создание пулов
 pool_train = generate_pool(df_train)

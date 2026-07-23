@@ -5,12 +5,12 @@ import pandas as pd
 from catboost import CatBoostRanker
 from scripts.ltr.generate_pool import generate_pool
 from scripts.evaluation.map_at_k import map_at_k
-from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_DIR, MODELS_CONFIG_DIR
+from scripts.utils.paths import DATA_PROCESSED_MOD1_DIR, MODELS_DIR, MODELS_CONFIG_DIR
 
 # %% Импорт
 # Загрузка данных
-df_train = pd.read_parquet(DATA_PROCESSED_DIR / 'df_train.parquet', engine='pyarrow')
-df_test = pd.read_parquet(DATA_PROCESSED_DIR / 'df_test.parquet', engine='pyarrow')
+df_train = pd.read_parquet(DATA_PROCESSED_MOD1_DIR / 'df_train.parquet', engine='pyarrow')
+df_test = pd.read_parquet(DATA_PROCESSED_MOD1_DIR / 'df_test.parquet', engine='pyarrow')
 
 # Загрузка параметров
 with open(file=MODELS_CONFIG_DIR / 'ltr_best_params.json', mode='r') as file:

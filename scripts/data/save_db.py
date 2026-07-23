@@ -1,12 +1,11 @@
 import _duckdb
 
 from pathlib import Path
-from scripts.utils.paths import DATA_PROCESSED_DIR
 
 def save_db(
         con: _duckdb.DuckDBPyConnection,
         file: str,
-        path_dir: Path = DATA_PROCESSED_DIR
+        path_dir: Path
     ):
 
     # Путь к файлу

@@ -8,7 +8,8 @@ from scripts.features.generate_features import generate_features
 from scripts.two_tower.generate_loader import generate_loader
 from scripts.two_tower.generate_tt_candidates import generate_tt_candidates
 from scripts.two_tower.generate_tt_datasets import generate_tt_inference
-from scripts.utils.paths import DATA_PROCESSED_DIR, MODELS_DIR
+from scripts.utils.paths import DATA_PROCESSED_DIR, DATA_PROCESSED_MOD2_DIR, \
+    MODELS_DIR
 
 # %% Импорт
 # Временное разделение на train-, valid- и test-выборки
@@ -48,7 +49,9 @@ con = generate_features(con,
                         return_con=True)
 
 # %% Сохранение таблицы
-save_db(con, 'tt_df_train.parquet')
+save_db(con, 
+        'tt_df_train.parquet', 
+        path_dir=DATA_PROCESSED_MOD2_DIR)
 
 # %% Отключение от БД
 con.close()
