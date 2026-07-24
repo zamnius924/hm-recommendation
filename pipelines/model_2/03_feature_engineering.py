@@ -19,40 +19,28 @@ tt_model = torch.load(
     weights_only=False
 )
 
-# %% Создание данных для энкодинга (покупатели, товары)
-candidates_train = generate_tt_inference(dates['train'])
-candidates_valid = generate_tt_inference(dates['valid'])
-candidates_test = generate_tt_inference(dates['test'])
+# %% Характеристики выборок (название файла, временные интервалы)
+splits = {
+    'df_train.parquet': dates['train'],
+    'df_valid.parquet': dates['valid'],
+    'df_test.parquet': dates['test']
+}
 
-# %% Генерация кандидатов на основе Two-tower
+# %% Генерация выборок для LTR
 k = 100 # кол-во генерируемых рекомендаций
 
-candidates_train = generate_tt_candidates(
-    tt_model,
-    candidates_train,
-    k=k
-)
-candidates_valid = generate_tt_candidates(
-    tt_model,
-    candidates_valid,
-    k=k
-)
-candidates_test = generate_tt_candidates(
-    tt_model,
-    candidates_test,
-    k=k
-)
+for file, split_dates in splits.items():
 
-# %% Генерация и сохранение фичей
-build_feature_table(dates['train'], 
-                    candidates_train, 
-                    'df_train.parquet',
-                    DATA_PROCESSED_MOD2_DIR)
-build_feature_table(dates['valid'], 
-                    candidates_valid, 
-                    'df_valid.parquet',
-                    DATA_PROCESSED_MOD2_DIR)
-build_feature_table(dates['test'],
-                    candidates_test,
-                    'df_test.parquet',
-                    DATA_PROCESSED_MOD2_DIR)
+    # Создание данных для энкодинга (покупатели, товары)
+    candidates = generate_tt_inference(split_dates)
+
+    # Two-tower: построение эмбеддингов + k лучших рекомендаций
+    candidates = generate_tt_candidates(tt_model,
+                                        candidates,
+                                        k=k)
+
+    # Генерация фичей для LTR + сохранение итоговой таблицы
+    build_feature_table(split_dates, 
+                        candidates, 
+                        file,
+                        DATA_PROCESSED_MOD2_DIR)
