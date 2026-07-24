@@ -2,9 +2,7 @@
 import json
 import torch
 
-from scripts.data.load_db import load_db
-from scripts.data.save_db import save_db
-from scripts.features.generate_features import generate_features
+from scripts.features.build_feature_table import build_feature_table
 from scripts.two_tower.generate_tt_candidates import generate_tt_candidates
 from scripts.two_tower.generate_tt_datasets import generate_tt_inference
 from scripts.utils.paths import DATA_PROCESSED_DIR, DATA_PROCESSED_MOD2_DIR, \
@@ -23,30 +21,38 @@ tt_model = torch.load(
 
 # %% Создание данных для энкодинга (покупатели, товары)
 candidates_train = generate_tt_inference(dates['train'])
-#candidates_valid = generate_tt_inference(dates['valid'])
-#candidates_test = generate_tt_inference(dates['test'])
+candidates_valid = generate_tt_inference(dates['valid'])
+candidates_test = generate_tt_inference(dates['test'])
 
 # %% Генерация кандидатов на основе Two-tower
-candidates_df = generate_tt_candidates(
+k = 100 # кол-во генерируемых рекомендаций
+
+candidates_train = generate_tt_candidates(
     tt_model,
     candidates_train,
-    k=100
+    k=k
+)
+candidates_valid = generate_tt_candidates(
+    tt_model,
+    candidates_valid,
+    k=k
+)
+candidates_test = generate_tt_candidates(
+    tt_model,
+    candidates_test,
+    k=k
 )
 
-# %% Генерация фичей
-# Инициализация БД
-con = load_db()
-
-# Генерация фичей
-con = generate_features(con, 
-                        dates['train'], 
-                        candidates_df, 
-                        return_con=True)
-
-# %% Сохранение таблицы
-save_db(con, 
-        'df_train.parquet', 
-        path_dir=DATA_PROCESSED_MOD2_DIR)
-
-# %% Отключение от БД
-con.close()
+# %% Генерация и сохранение фичей
+build_feature_table(dates['train'], 
+                    candidates_train, 
+                    'df_train.parquet',
+                    DATA_PROCESSED_MOD2_DIR)
+build_feature_table(dates['valid'], 
+                    candidates_valid, 
+                    'df_valid.parquet',
+                    DATA_PROCESSED_MOD2_DIR)
+build_feature_table(dates['test'],
+                    candidates_test,
+                    'df_test.parquet',
+                    DATA_PROCESSED_MOD2_DIR)
