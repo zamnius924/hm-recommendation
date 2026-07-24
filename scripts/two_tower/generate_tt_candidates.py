@@ -12,7 +12,7 @@ def generate_tt_candidates(
         tt_model: TwoTower,
         candidates: CandidateDataset,
         k: int
-    ):
+    ) -> pd.DataFrame:
     """
     Генерация кандидатов на основе результатов Two Tower
     """
